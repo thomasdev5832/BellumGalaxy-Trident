@@ -39,7 +39,7 @@ contract TridentIntegration is Test {
     modifier createGame(){
         vm.startPrank(Barba);
         trident.createNewGame("GTA12", "Grande Tatu Autonomo 12");
-        trident.setReleaseConditions("GTA12", SELLING_DATE, GAME_PRICE, TIME_LOCK);
+        trident.setReleaseConditions("GTA12", SELLING_DATE, GAME_PRICE);
         trident.manageAllowedTokens(tokenOne, 1);
         vm.stopPrank();
         _;
