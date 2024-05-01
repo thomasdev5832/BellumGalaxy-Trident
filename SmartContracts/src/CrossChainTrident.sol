@@ -4,6 +4,9 @@ pragma solidity 0.8.20;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+import { ILogAutomation } from "@chainlink/contracts/src/v0.8/automation/interfaces/ILogAutomation.sol"; 
+
 import {TridentNFT} from "./TridentNFT.sol";
 import {TridentFunctions} from "./TridentFunctions.sol";
 
@@ -29,6 +32,12 @@ error Trident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime);
 ///@notice emitted when an user don't have enough balance
 error Trident_NotEnoughBalance(uint256 gamePrice);
 
+///////////////
+///INTERFACE///
+///////////////
+
+
+
 /**
     *@author Barba - Bellum Galaxy Hackathon Division
     *@title Trident Project
@@ -36,19 +45,12 @@ error Trident_NotEnoughBalance(uint256 gamePrice);
     *@dev do not use in production
     *contact www.bellumgalaxy.com - https://linktr.ee/bellumgalaxy
 */
-contract Trident is Ownable{
+contract CrossChainTrident is ILogAutomation, Ownable{
     using SafeERC20 for ERC20;
     
     ////////////////////
     /// CUSTOM TYPES ///
     ////////////////////
-    ///@notice Struct to track new games NFTs
-    struct GameRelease{
-        string gameName;
-        string gameSymbol;
-        TridentNFT keyAddress;
-    }
-
     ///@notice Struct to track info about games to be released
     struct GameInfos {
         uint256 sellingDate;
@@ -67,27 +69,15 @@ contract Trident is Ownable{
     //////////////////////////////
     /// CONSTANTS & IMMUTABLES ///
     //////////////////////////////
-    ///@notice magic number removal
-    uint256 private constant ZERO = 0;
-    ///@notice magic number removal
-    uint256 private constant ONE = 1;
-    ///@notice magic number removal
-    uint256 private constant DECIMALS = 10**18;
-    ///@notice functions constract instance
-    TridentFunctions private immutable i_functions;
+
 
     ///////////////////////
     /// STATE VARIABLES ///
     ///////////////////////
-    
 
-    ///@notice Mapping to keep track of future launched games
-    mapping(string gameSymbol => GameRelease) private s_gamesCreated;
     ///@notice Mapping to keep track of game's info
     mapping(string gameSymbol => GameInfos) private s_gamesInfo;
-    
-    ///@notice Mapping to keep track of allowed stablecoins
-    //0 = not allowed | 1 = allowed
+    ///@notice Mapping to keep track of allowed stablecoins ~ 0 = not allowed | 1 = allowed
     mapping(ERC20 tokenAddress => uint256 allowed) private s_tokenAllowed;
     ///@notice Mapping to keep track of games an user has
     mapping(address client => Client[]) private s_clientRecords;
@@ -98,15 +88,14 @@ contract Trident is Ownable{
     ///@notice event emitted when a new game nft is created
     event Trident_NewGameCreated(string gameName, string tokenSymbol, TridentNFT trident);
     ///@notice event emitted when infos about a new game is released
-    event Trident_ReleaseConditionsSet(string tokenSymbol, uint256 startingDate, uint256 price);
+    event Trident_ReleaseConditionsSet(string tokenSymbol, uint256 startingDate, uint256 price, uint256 timeLock);
     ///@notice event emitted when a whitelisted token is updated
     event Trident_AllowedTokensUpdated(string tokenName, string tokenSymbol, ERC20 tokenAddress, uint256 isAllowed);
     ///@notice event emitted when a new copy is sold.
     event Trident_NewGameSold(string _gameSymbol, address payer, uint256 date, address gameReceiver);
 
-    constructor(address _owner, TridentFunctions _functionsAddress) Ownable(_owner){
-        if(_owner == address(0) || address(_functionsAddress) == address(0)) revert Trident_InvalidAddress(_owner, _functionsAddress);
-        i_functions = _functionsAddress;
+    constructor(address _owner) Ownable(_owner){
+        if(_owner == address(0) ) revert Trident_InvalidAddress(_owner);
     }
 
     /////////////////////////////////////////////////////////////////
@@ -116,49 +105,7 @@ contract Trident is Ownable{
     ////////////////////////////////////
     /// EXTERNAL onlyOwner FUNCTIONS ///
     ////////////////////////////////////
-    /**
-        *@notice Function for Publisher to create a new game NFT
-        *@param _gameSymbol game's identifier
-        *@param _gameName game's name
-        *@dev _gameSymbol param it's an easier explanation option.
-        *@dev we deploy a new NFT key everytime a game is created.
-    */
-    function createNewGame(string memory _gameSymbol, string memory _gameName) external onlyOwner {
-        // CHECKS
-        if(address(s_gamesCreated[_gameSymbol].keyAddress) != address(0)) revert Trident_GameAlreadyReleased(s_gamesCreated[_gameSymbol].keyAddress);
 
-        s_gamesCreated[_gameSymbol] = GameRelease({
-            gameName: _gameName,
-            gameSymbol:_gameSymbol,
-            keyAddress: new TridentNFT(_gameName, _gameSymbol, address(this))
-        });
-
-        emit Trident_NewGameCreated(_gameName, _gameSymbol, s_gamesCreated[_gameSymbol].keyAddress);
-    }
-
-    /**
-        *@notice Function to set game release conditions
-        *@param _gameSymbol game identifier
-        *@param _startingDate start selling date
-        *@param _price game starting price
-        *@dev _gameSymbol param it's an easier explanation option.
-    */
-    function setReleaseConditions(string memory _gameSymbol, uint256 _startingDate, uint256 _price) external onlyOwner {
-        //CHECKS
-        if(address(s_gamesCreated[_gameSymbol].keyAddress) == address(0)) revert Trident_NonExistantGame(address(0));
-        
-        if(_startingDate < block.timestamp) revert Trident_SetAValidSellingPeriod(_startingDate, block.timestamp);
-        //value check is needed
-
-        //EFFECTS
-        s_gamesInfo[_gameSymbol] = GameInfos({
-            sellingDate: _startingDate,
-            price: _price * DECIMALS,
-            copiesSold: 0
-        });
-
-        emit Trident_ReleaseConditionsSet(_gameSymbol, _startingDate, _price);
-    }
 
     /**
         * @notice Function to manage whitelisted tokens
@@ -200,6 +147,26 @@ contract Trident is Ownable{
         _handleExternalCall(buyer, gameNft.gameSymbol, gameNft.keyAddress, game.price, _gameReceiver, _chosenToken);
     }
 
+    //https://docs.chain.link/chainlink-automation/guides/log-trigger
+    //This functions will listen to setRealeseConditionsFunction -> Trident_ReleaseConditionsSet(string tokenSymbol, uint256 startingDate, uint256 price);
+    function checkLog(Log calldata log, bytes memory) external pure returns (bool upkeepNeeded, bytes memory performData) {
+        // upkeepNeeded = true;
+        // address logSender = bytes32ToAddress(log.topics[1]);
+        // performData = abi.encode(logSender);
+    }
+
+    //perform precisa escrever os dados recebidos do evento em um storage.
+    //https://docs.chain.link/chainlink-automation/reference/automation-interfaces#ilogautomation
+    function performUpkeep(bytes calldata performData) external override {
+        // counted += 1;
+        // address logSender = abi.decode(performData, (address));
+        // emit CountedBy(logSender);
+    }
+
+    function bytes32ToAddress(bytes32 _address) public pure returns (address) {
+        return address(uint160(uint256(_address)));
+    }
+
     //////////////////// To implement
     //CCIP to allow game purchases crosschain
 
@@ -224,21 +191,12 @@ contract Trident is Ownable{
 
         //INTERACTIONS
         // i_functions.sendRequest(); //@AJUSTE Quais infos mando para o banco? Wallet Address / NFT Game Address / 
-        gameNft.keyAddress.safeMint(_gameReceiver, "");
         _chosenToken.safeTransferFrom(msg.sender, address(this), _value);
     }
 
     /////////////////
     ///VIEW & PURE///
     /////////////////
-    function getGamesCreated(string memory _gameSymbol) external view returns(GameRelease memory){
-        return s_gamesCreated[_gameSymbol];
-    }
-
-    function getGamesInfo(string memory _gameSymbol) external view returns(GameInfos memory){
-        return s_gamesInfo[_gameSymbol];
-    }
-
     function getClientRecords(address _client) external view returns(Client[] memory){
         return s_clientRecords[_client];
     }

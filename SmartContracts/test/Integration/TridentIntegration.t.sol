@@ -76,7 +76,7 @@ contract TridentIntegration is Test {
         vm.warp(301);
 
         vm.prank(Gabriel);
-        trident.buyGame("GTA12", tokenOne);
+        trident.buyGame("GTA12", tokenOne, Gabriel);
 
         Trident.GameRelease memory game = trident.getGamesCreated("GTA12");
         assertEq(TridentNFT(game.keyAddress).balanceOf(Gabriel), 1);
@@ -91,16 +91,16 @@ contract TridentIntegration is Test {
 
         vm.prank(Gabriel);
         vm.expectRevert(abi.encodeWithSelector(Trident_GameNotAvailableYet.selector, block.timestamp, SELLING_DATE));
-        trident.buyGame("GTA12", tokenOne);
+        trident.buyGame("GTA12", tokenOne, Gabriel);
 
         vm.warp(SELLING_DATE +1);
 
         vm.prank(Gabriel);
         vm.expectRevert(abi.encodeWithSelector(Trident_TokenNotAllowed.selector, tokenTwo));
-        trident.buyGame("GTA12", tokenTwo);
+        trident.buyGame("GTA12", tokenTwo, Gabriel);
 
         vm.prank(Gabriel);
         vm.expectRevert(abi.encodeWithSelector(Trident_NotEnoughBalance.selector, GAME_PRICE *10**18));
-        trident.buyGame("GTA12", tokenOne);
+        trident.buyGame("GTA12", tokenOne, Gabriel);
     }
 }
