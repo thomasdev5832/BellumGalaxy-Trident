@@ -59,17 +59,6 @@ contract TridentTest is Test {
         _;
     }
 
-    function test_setReleaseConditions() public createGame{
-        vm.prank(Barba);
-        trident.setReleaseConditions(1, 300, 150);
-
-        Trident.GameInfos memory info = trident.getGamesInfo(1);
-
-        assertEq(info.sellingDate, 300);
-        assertEq(info.price, 150 ether);
-        assertEq(info.copiesSold, 0);
-    }
-
     error Trident_SetAValidSellingPeriod(uint256 startingDate, uint256 dateNow);
     error Trident_NonExistantGame(TridentNFT trident);
     function test_functionRevertsOnInvalidTokenSymbol() public createGame{

@@ -14,6 +14,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 import {CCIPLocalSimulator, IRouterClient, WETH9, LinkToken, BurnMintERC677Helper} from "@chainlink/local/src/ccip/CCIPLocalSimulator.sol";
+import { Log } from "@chainlink/contracts/src/v0.8/automation/interfaces/ILogAutomation.sol";
 
 contract TridentIntegration is Test {
     Trident public trident;
@@ -31,6 +32,8 @@ contract TridentIntegration is Test {
     address Cayo = makeAddr("Cayo");
     address Gabriel = makeAddr("Gabriel");
     address Raffa = makeAddr("Raffa");
+    address Keeper = makeAddr("Keeper");
+    address fakeReceiver = makeAddr("fakeReceiver");
 
     uint256 constant SELLING_DATE = 300;
     uint256 constant GAME_PRICE = 150;
@@ -81,6 +84,28 @@ contract TridentIntegration is Test {
         trident.manageAllowedTokens(tokenOne, 1);
         vm.stopPrank();
         _;
+    }
+
+    ////////////////////////////////
+    ///AUTOMATION HELPER FUNCTION///
+    ////////////////////////////////
+    function createMockLog() public view returns (Log memory) {
+        bytes32[] memory topics = new bytes32[](5);
+        topics[1] = bytes32(abi.encodePacked(uint256(1))); // _gameId
+        topics[2] = bytes32(abi.encodePacked(address(Raffa))); // _startingDate
+        topics[3] = bytes32(abi.encodePacked(uint256(10_000))); // transactionTime
+        topics[4] = bytes32(abi.encodePacked(address(Raffa))); // transactionTime
+
+        return Log({
+            index: 1,
+            timestamp: 9_950,  // Ou um valor fixo para testes consistentes
+            txHash: bytes32(abi.encodePacked(uint256(0xabc123))),   // Hash de transação fictício
+            blockNumber: 12345,
+            blockHash: bytes32(abi.encodePacked(uint256(0xdef456))),  // Hash de bloco fictício
+            source: fakeReceiver,
+            topics: topics,
+            data: bytes("0x77656c636f6d65")  // Dados fictícios em hexadecimal
+        });
     }
 
     /////////////////////////////
@@ -185,10 +210,76 @@ contract TridentIntegration is Test {
         trident.manageAllowedTokens(tokenOne, 2);
     }
 
+    ///////////////////
+    ///createNewGame///
+    ///////////////////
+    function test_createNewGame() public {
+        vm.startPrank(Barba);
+        trident.createNewGame("GTA12", "Grande Tatu Autonomo 12");
+
+        Trident.GameRelease memory game = trident.getGamesCreated(1);
+
+        assertEq(game.gameName, "Grande Tatu Autonomo 12");
+        assertEq(game.gameSymbol, "GTA12");
+        assertTrue(address(game.keyAddress) != address(0));
+    }
+
+    error Trident_InvalidGameSymbolOrName(string symbol, string name);
+    function test_revertCreateNewGame() public {
+        vm.prank(Barba);
+        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidGameSymbolOrName.selector, "", ""));
+        trident.createNewGame("", "");
+    }
+
+    //////////////////////////
+    ///setReleaseConditions///
+    //////////////////////////
+    function test_setReleaseConditions() public {
+        uint256 gamePrice = 30;
+        
+        vm.startPrank(Barba);
+        trident.createNewGame("GTA12", "Grande Tatu Autonomo 12");
+        
+        vm.warp(300);
+
+        trident.setReleaseConditions(1, 301, gamePrice);
+        vm.stopPrank();
+
+        Trident.GameInfos memory infos = trident.getGamesInfo(1);
+
+        assertEq(infos.sellingDate, 301);
+        assertEq(infos.price, 30*10**18);
+        assertEq(infos.copiesSold, 0);
+    }
+
+    error Trident_NonExistantGame(address invalid);
+    error Trident_SetAValidSellingPeriod(uint256 startingDate, uint256 timeNow);
+    error Trident_InvalidGamePrice(uint256 price);
+    function test_revertSetReleaseConditions() public {
+        uint256 gamePrice = 30;
+
+        vm.prank(Barba);
+        trident.createNewGame("GTA12", "Grande Tatu Autonomo 12");
+        
+        vm.prank(Barba);
+        vm.expectRevert(abi.encodeWithSelector(Trident_NonExistantGame.selector, address(0)));
+        trident.setReleaseConditions(100, 301, gamePrice);
+
+        vm.warp(1000);
+
+        vm.prank(Barba);
+        vm.expectRevert(abi.encodeWithSelector(Trident_SetAValidSellingPeriod.selector, 301, 1000));
+        trident.setReleaseConditions(1, 301, gamePrice);
+
+        vm.prank(Barba);
+        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidGamePrice.selector, 0));
+        trident.setReleaseConditions(1, 1100, 0);
+    }
+
     /////////////
     ///buyGame///
     /////////////
-    function test_ifAUserCanByAGame() public createGame{
+    function test_buyAGame() public createGame{
         tokenOne.mint(Gabriel, USER_INITIAL_BALANCE);
         vm.prank(Gabriel);
         tokenOne.approve(address(trident), USER_INITIAL_BALANCE);
@@ -207,7 +298,7 @@ contract TridentIntegration is Test {
     error Trident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime);
     error Trident_TokenNotAllowed(ERC20 choosenToken);
     error Trident_NotEnoughBalance(uint256 gamePrice);
-    function testIfbuyGameReverts() public createGame{
+    function test_revertBuyGame() public createGame{
 
         vm.prank(Gabriel);
         vm.expectRevert(abi.encodeWithSelector(Trident_GameNotAvailableYet.selector, block.timestamp, SELLING_DATE));
@@ -222,5 +313,41 @@ contract TridentIntegration is Test {
         vm.prank(Gabriel);
         vm.expectRevert(abi.encodeWithSelector(Trident_NotEnoughBalance.selector, GAME_PRICE *10**18));
         trident.buyGame(1, tokenOne, Gabriel);
+    }
+
+    //////////////
+    ///checkLog///
+    //////////////
+    error Trident_InvalidCaller(address caller);
+    error Trident_InvalidLogEmissor(address source);
+    function test_checkLog() public {
+        Log memory log = createMockLog();
+        bool upkeepNeeded;
+        bytes memory performData;
+
+        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidCaller.selector, address(this)));
+        (upkeepNeeded, performData) = trident.checkLog(log, "");
+
+        vm.prank(Barba);
+        trident.manageAllowedRelayers(Keeper, 1);
+
+        vm.prank(Keeper);
+        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidLogEmissor.selector, fakeReceiver));
+        ( upkeepNeeded, performData) = trident.checkLog(log, "");
+
+        vm.prank(Barba);
+        trident.manageAllowlistSender(fakeReceiver, 1);
+
+        vm.prank(Keeper);
+        (upkeepNeeded, performData) = trident.checkLog(log, "");
+
+        vm.prank(Keeper);
+        trident.performUpkeep(performData);
+
+        Trident.GameInfos memory infos = trident.getGamesInfo(1);
+        Trident.GameRelease memory release = trident.getGamesCreated(1);
+
+        assertEq(infos.copiesSold, 1);
+        assertEq(release.keyAddress.balanceOf(Raffa), 1);
     }
 }

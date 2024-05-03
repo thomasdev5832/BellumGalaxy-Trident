@@ -92,8 +92,8 @@ contract TridentIntegration is Test {
             source: fakeReceiver,
             topics: topics,
             data: bytes("0x77656c636f6d65")  // Dados fictícios em hexadecimal
-    });
-}
+        });
+    }
 
     /////////////////////////
     ///manageAllowedTokens///

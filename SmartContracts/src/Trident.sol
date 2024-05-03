@@ -26,11 +26,13 @@ error Trident_InvalidSender(address sender);
 ///@notice emitted when a contract is initialized with an address(0) param
 error Trident_InvalidAddress(address owner, TridentFunctions functions);
 ///@notice emitted when publisher tries to deploy duplicate game
-error Trident_GameAlreadyReleased(TridentNFT trident);
+error Trident_InvalidGameSymbolOrName(string symbol, string name);
 ///@notice emitted when the selling period is invalid
 error Trident_SetAValidSellingPeriod(uint256 startingDate, uint256 dateNow);
 ///@notice emitted when an invalid game is selected
 error Trident_NonExistantGame(address invalidAddress);
+///@notice emitted when owner inputs an invalid price
+error Trident_InvalidGamePrice(uint256 price);
 ///@notice emitted when an user don't have enough balance
 error Trident_NotEnoughBalance(uint256 gamePrice);
 ///@notice emitted when the caller is not the keeper forwarder
@@ -245,8 +247,9 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     */
     function createNewGame(string memory _gameSymbol, string memory _gameName) external onlyOwner {
         // CHECKS
-        if(address(s_gamesCreated[s_gameIdCounter].keyAddress) != address(0)) revert Trident_GameAlreadyReleased(s_gamesCreated[s_gameIdCounter].keyAddress);//@Test
+        if(bytes(_gameSymbol).length < ONE || bytes(_gameName).length < ONE) revert Trident_InvalidGameSymbolOrName(_gameSymbol, _gameName);
 
+        //EFFECTS
         s_gamesCreated[++s_gameIdCounter] = GameRelease({
             gameSymbol:_gameSymbol,
             gameName: _gameName,
@@ -268,7 +271,8 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
         if(address(release.keyAddress) == address(0)) revert Trident_NonExistantGame(address(0));//@Test
         
         if(_startingDate < block.timestamp) revert Trident_SetAValidSellingPeriod(_startingDate, block.timestamp);//@Test
-        //value check is needed
+        
+        if(_price < ONE) revert Trident_InvalidGamePrice(_price);
 
         //EFFECTS
         s_gamesInfo[_gameId] = GameInfos({
@@ -405,7 +409,7 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     }
 
     function getGamesCreated(uint256 _gameId) external view returns(GameRelease memory){
-        return s_gamesCreated[_gameId];//@Test
+        return s_gamesCreated[_gameId];
     }
 
     function getGamesInfo(uint256 _gameId) external view returns(GameInfos memory){
