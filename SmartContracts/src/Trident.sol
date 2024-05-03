@@ -15,10 +15,16 @@ import {TridentFunctions} from "./TridentFunctions.sol";
 //////////////
 /// ERRORS ///
 //////////////
-///@notice emitted when a contract is initialized with an address(0) param
-error Trident_InvalidAddress(address owner, TridentFunctions functions);
 ///@notice emitted when the keeper forwarder address is invalid
 error Trident_InvalidKeeperAddress(address forwarderAddress);
+///@notice emitted when publisher input a wrong value
+error Trident_ZeroOneOption(uint256 isAllowed);
+///@notice emitted when owner input an invalid sourceChain id
+error Trident_InvalidSouceChain(uint64 sourceChainSelector);
+///@notice emitted when owner input an invalid sender address
+error Trident_InvalidSender(address sender);
+///@notice emitted when a contract is initialized with an address(0) param
+error Trident_InvalidAddress(address owner, TridentFunctions functions);
 ///@notice emitted when publisher tries to deploy duplicate game
 error Trident_GameAlreadyReleased(TridentNFT trident);
 ///@notice emitted when the selling period is invalid
@@ -29,10 +35,10 @@ error Trident_NonExistantGame(address invalidAddress);
 error Trident_NotEnoughBalance(uint256 gamePrice);
 ///@notice emitted when the caller is not the keeper forwarder
 error Trident_InvalidCaller(address caller);
+///@notice emitted when the contract receives an log from a invalid sender
+error Trident_InvalidLogEmissor(address senderAddress);
 ///@notice emitted when publisher input wrong address value
 error Trident_InvalidTokenAddress(ERC20 tokenAddress);
-///@notice emitted when publisher input a wrong value
-error Trident_ZeroOneOption(uint256 isAllowed);
 ///@notice emitted when a user tries to use a token that is not allowed
 error Trident_TokenNotAllowed(ERC20 choosenToken);
 ///@notice emitted when the selling period is not open yet
@@ -57,8 +63,8 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     ////////////////////
     ///@notice Struct to track new games NFTs
     struct GameRelease{
-        string gameName;
         string gameSymbol;
+        string gameName;
         TridentNFT keyAddress;
     }
 
@@ -71,7 +77,7 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
 
     ///@notice Struct to track buying info.
     struct ClientRecord {
-        string gameSymbol;
+        string gameName;
         TridentNFT game;
         uint256 buyingDate;
         uint256 paidValue;
@@ -101,24 +107,25 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     ///////////////////////
     /// STATE VARIABLES ///
     ///////////////////////
+    uint256 private s_gameIdCounter;
     uint256 private s_ccipCounter;
 
     ///@notice Mapping to keep track of allowed stablecoins. ~ 0 = not allowed | 1 = allowed
     mapping(ERC20 tokenAddress => uint256 allowed) private s_tokenAllowed;
     ///@notice Mapping to keep track of allowed forwarders. ~ 0 = not allowed | 1 = allowed
-    mapping(address keeperForwarder => uint256 allowed) private s_allowedKeeperForwarders;
+    mapping(address keeperForwarder => uint256 allowed) private s_allowedKeeperRelayers;
     ///@notice Mapping to keep track of future launched games
-    mapping(string gameSymbol => GameRelease) private s_gamesCreated;
+    mapping(uint256 gameIdCounter => GameRelease) private s_gamesCreated;
     ///@notice Mapping to keep track of game's info
-    mapping(string gameSymbol => GameInfos) private s_gamesInfo;
+    mapping(uint256 gameIdCounter => GameInfos) private s_gamesInfo;
     ///@notice Mapping to keep track of games an user has
     mapping(address client => ClientRecord[]) private s_clientRecords;
     ///@notice Mapping to keep track of CCIP transactions
     mapping(uint256 ccipCounter => CCIPInfos) private s_ccipMessages;
     ///@notice Mapping to keep track of allowlisted source chains. ~ 0 = not allowed | 1 = allowed
-    mapping(uint64 chainID=> uint256 allowed) private allowlistedSourceChains;
+    mapping(uint64 chainID=> uint256 allowed) private s_allowlistedSourceChains;
     ///@notice Mapping to keep track of allowlisted senders. ~ 0 = not allowed | 1 = allowed
-    mapping(address sender => uint256 allowed) private allowlistedSenders;
+    mapping(address sender => uint256 allowed) private s_allowlistedSenders;
 
     //////////////
     /// EVENTS ///
@@ -126,19 +133,19 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     ///@notice event emitted when a token is updated or added
     event Trident_AllowedTokensUpdated(string tokenName, string tokenSymbol, ERC20 tokenAddress, uint256 isAllowed);
     ///@notice event emitted when a forwarded is updated or added
-    event Trident_NewForwarderAllowed(address forwarderAddress, uint256 isAllowed);
+    event Trident_NewRelayerAllowed(address relayerAddress, uint256 isAllowed);
     ///@notice event emitted when a source chain is updated
     event Trident_SourceChainUpdated(uint64 sourceChainSelector, uint256 allowed);
     ///@notice event emitted when a sender is updated
     event Trident_AllowedSenderUpdated(address sender, uint256 allowed);
     ///@notice event emitted when a new game nft is created
-    event Trident_NewGameCreated(string gameName, string tokenSymbol, TridentNFT trident);
+    event Trident_NewGameCreated(uint256 gameId, string tokenSymbol, string gameName, TridentNFT trident);
     ///@notice event emitted when infos about a new game is released
-    event Trident_ReleaseConditionsSet(string tokenSymbol, uint256 startingDate, uint256 price);
+    event Trident_ReleaseConditionsSet(uint256 gameId, uint256 startingDate, uint256 price);
     ///@notice event emitted when a new copy is sold.
-    event Trident_NewGameSold(string _gameSymbol, address payer, uint256 date, address gameReceiver);
+    event Trident_NewGameSold(uint256 gameId, string gameName, address payer, uint256 date, address gameReceiver);
     ///@notice event emitted when a Cross-chain transaction occur
-    event Trident_CrossChainBuyingPerformed(string gameSymbol, uint256 transactionTime, uint256 price);
+    event Trident_CrossChainBuyingPerformed(uint256 gameId, uint256 transactionTime, uint256 price);
     ///@notice event emitted when a CCIP message is received
     event TridentCCReceiver_MessageReceived(bytes32 messageId, uint64 sourceChainSelector, address sender, string text);
 
@@ -149,9 +156,9 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     /// @param _sourceChainSelector The selector of the destination chain.
     /// @param _sender The address of the sender.
     modifier onlyAllowlisted(uint64 _sourceChainSelector, address _sender) {
-        if (allowlistedSourceChains[_sourceChainSelector] != 1)
+        if (s_allowlistedSourceChains[_sourceChainSelector] != 1)
             revert Trident_SourceChainNotAllowed(_sourceChainSelector);
-        if (allowlistedSenders[_sender]  != 1 ) revert Trident_SenderNotAllowed(_sender);
+        if (s_allowlistedSenders[_sender]  != 1 ) revert Trident_SenderNotAllowed(_sender);
         _;
     }
 
@@ -170,48 +177,49 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     /// EXTERNAL onlyOwner FUNCTIONS ///
     ////////////////////////////////////
     /**
-        *@notice Function for Publisher to create a new game NFT
-        *@param _gameSymbol game's identifier
-        *@param _gameName game's name
-        *@dev _gameSymbol param it's an easier explanation option.
-        *@dev we deploy a new NFT key everytime a game is created.
+        *@notice Function to add the Chainlink Relayer Automation Contract
+        *@param _relayer the address of the relayer
+        *@param _isAllowed 0 = Not Allowed | 1 = Allowed
+        *@dev any value above 1 will be considerate invalid.
+        *@dev it's payable to save gas.
     */
-    function createNewGame(string memory _gameSymbol, string memory _gameName) external onlyOwner {
-        // CHECKS
-        if(address(s_gamesCreated[_gameSymbol].keyAddress) != address(0)) revert Trident_GameAlreadyReleased(s_gamesCreated[_gameSymbol].keyAddress);
+    function manageAllowedRelayers(address _relayer, uint256 _isAllowed) external payable onlyOwner{
+        if(_relayer == address(0)) revert Trident_InvalidKeeperAddress(_relayer);
+        if(_isAllowed > ONE) revert Trident_ZeroOneOption(_isAllowed);
 
-        s_gamesCreated[_gameSymbol] = GameRelease({
-            gameName: _gameName,
-            gameSymbol:_gameSymbol,
-            keyAddress: new TridentNFT(_gameName, _gameSymbol, address(this))
-        });
+        s_allowedKeeperRelayers[_relayer] = _isAllowed;
 
-        emit Trident_NewGameCreated(_gameName, _gameSymbol, s_gamesCreated[_gameSymbol].keyAddress);
+        emit Trident_NewRelayerAllowed(_relayer, _isAllowed);
     }
 
     /**
-        *@notice Function to set game release conditions
-        *@param _gameSymbol game identifier
-        *@param _startingDate start selling date
-        *@param _price game starting price
-        *@dev _gameSymbol param it's an easier explanation option.
+        * @dev Updates the allowlist status of a source chain
+        * @notice This function can only be called by the owner.
+        * @param _sourceChainSelector The selector of the source chain to be updated.
+        * @param _isAllowed The allowlist status to be set for the source chain.
     */
-    function setReleaseConditions(string memory _gameSymbol, uint256 _startingDate, uint256 _price) external onlyOwner {
-        GameRelease memory release = s_gamesCreated[_gameSymbol];
-        //CHECKS
-        if(address(release.keyAddress) == address(0)) revert Trident_NonExistantGame(address(0));
-        
-        if(_startingDate < block.timestamp) revert Trident_SetAValidSellingPeriod(_startingDate, block.timestamp);
-        //value check is needed
+    function manageAllowlistSourceChain(uint64 _sourceChainSelector, uint256 _isAllowed) external payable onlyOwner {
+        if(_sourceChainSelector < ONE) revert Trident_InvalidSouceChain(_sourceChainSelector);
+        if(_isAllowed > ONE) revert Trident_ZeroOneOption(_isAllowed);
 
-        //EFFECTS
-        s_gamesInfo[_gameSymbol] = GameInfos({
-            sellingDate: _startingDate,
-            price: _price * DECIMALS,
-            copiesSold: 0
-        });
+        s_allowlistedSourceChains[_sourceChainSelector] = _isAllowed;
 
-        emit Trident_ReleaseConditionsSet(_gameSymbol, _startingDate, _price);
+        emit Trident_SourceChainUpdated(_sourceChainSelector, _isAllowed);
+    }
+
+    /**
+        * @dev Updates the allowlist status of a sender for transactions.
+        * @notice This function can only be called by the owner.
+        * @param _sender The address of the sender to be updated.
+        * @param _isAllowed The allowlist status to be set for the sender.
+    */
+    function manageAllowlistSender(address _sender, uint256 _isAllowed) external payable onlyOwner {
+        if(_sender == address(0)) revert Trident_InvalidSender(_sender);
+        if(_isAllowed > ONE) revert Trident_ZeroOneOption(_isAllowed);
+
+        s_allowlistedSenders[_sender] = _isAllowed;
+
+        emit Trident_AllowedSenderUpdated(_sender, _isAllowed);
     }
 
     /**
@@ -229,58 +237,66 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
         emit Trident_AllowedTokensUpdated(_tokenAddress.name(), _tokenAddress.symbol(), _tokenAddress, _isAllowed);
     }
 
-    function manageAllowedForwarders(address _forwarderAddress, uint256 _isAllowed) external payable onlyOwner{
-        if(_forwarderAddress == address(0)) revert Trident_InvalidKeeperAddress(_forwarderAddress);
-        if(_isAllowed > ONE) revert Trident_ZeroOneOption(_isAllowed);
+    /**
+        *@notice Function for Publisher to create a new game NFT
+        *@param _gameSymbol game's identifier
+        *@param _gameName game's name
+        *@dev we deploy a new NFT key everytime a game is created.
+    */
+    function createNewGame(string memory _gameSymbol, string memory _gameName) external onlyOwner {
+        // CHECKS
+        if(address(s_gamesCreated[s_gameIdCounter].keyAddress) != address(0)) revert Trident_GameAlreadyReleased(s_gamesCreated[s_gameIdCounter].keyAddress);//@Test
 
-        s_allowedKeeperForwarders[_forwarderAddress] = _isAllowed;
+        s_gamesCreated[++s_gameIdCounter] = GameRelease({
+            gameSymbol:_gameSymbol,
+            gameName: _gameName,
+            keyAddress: new TridentNFT(_gameName, _gameSymbol, address(this))
+        });
 
-        emit Trident_NewForwarderAllowed(_forwarderAddress, _isAllowed);
+        emit Trident_NewGameCreated(s_gameIdCounter, _gameSymbol, _gameName, s_gamesCreated[s_gameIdCounter].keyAddress);
     }
 
     /**
-        * @dev Updates the allowlist status of a source chain
-        * @notice This function can only be called by the owner.
-        * @param _sourceChainSelector The selector of the source chain to be updated.
-        * @param _isAllowed The allowlist status to be set for the source chain.
+        *@notice Function to set game release conditions
+        *@param _gameId game identifier
+        *@param _startingDate start selling date
+        *@param _price game starting price
     */
-    function allowlistSourceChain(uint64 _sourceChainSelector, uint256 _isAllowed) external payable onlyOwner {
-        if(_isAllowed > ONE) revert Trident_ZeroOneOption(_isAllowed);
+    function setReleaseConditions(uint256 _gameId, uint256 _startingDate, uint256 _price) external onlyOwner {
+        GameRelease memory release = s_gamesCreated[_gameId];
+        //CHECKS
+        if(address(release.keyAddress) == address(0)) revert Trident_NonExistantGame(address(0));//@Test
+        
+        if(_startingDate < block.timestamp) revert Trident_SetAValidSellingPeriod(_startingDate, block.timestamp);//@Test
+        //value check is needed
 
-        allowlistedSourceChains[_sourceChainSelector] = _isAllowed;
+        //EFFECTS
+        s_gamesInfo[_gameId] = GameInfos({
+            sellingDate: _startingDate,
+            price: _price * DECIMALS,
+            copiesSold: 0
+        });
 
-        emit Trident_SourceChainUpdated(_sourceChainSelector, _isAllowed);
+        emit Trident_ReleaseConditionsSet(_gameId, _startingDate, _price);
     }
 
-    /**
-        * @dev Updates the allowlist status of a sender for transactions.
-        * @notice This function can only be called by the owner.
-        * @param _sender The address of the sender to be updated.
-        * @param _isAllowed The allowlist status to be set for the sender.
-    */
-    function allowlistSender(address _sender, uint256 _isAllowed) external payable onlyOwner {
-        if(_isAllowed > ONE) revert Trident_ZeroOneOption(_isAllowed);
 
-        allowlistedSenders[_sender] = _isAllowed;
-
-        emit Trident_AllowedSenderUpdated(_sender, _isAllowed);
-    }
 
     //////////////////////////
     /// EXTERNAL FUNCTIONS ///
     //////////////////////////
     /**
         * @notice Function for users to buy games
-        * @param _gameSymbol game identifier
+        * @param _gameId game identifier
         * @param _chosenToken token used to pay for the game
         *@dev _gameSymbol param it's an easier explanation option.
     */
-    function buyGame(string memory _gameSymbol, ERC20 _chosenToken, address _gameReceiver) external {
+    function buyGame(uint256 _gameId, ERC20 _chosenToken, address _gameReceiver) external {
         //CHECKS
         if(s_tokenAllowed[_chosenToken] != ONE) revert Trident_TokenNotAllowed(_chosenToken);
         
-        GameInfos memory game = s_gamesInfo[_gameSymbol];
-        GameRelease memory gameNft = s_gamesCreated[_gameSymbol];
+        GameInfos memory game = s_gamesInfo[_gameId];
+        GameRelease memory gameNft = s_gamesCreated[_gameId];
 
         if(block.timestamp < game.sellingDate) revert Trident_GameNotAvailableYet(block.timestamp, game.sellingDate);
 
@@ -288,47 +304,50 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
 
         address buyer = msg.sender;
 
-        _handleExternalCall(gameNft.gameSymbol, gameNft.keyAddress, block.timestamp, game.price, buyer, _gameReceiver, _chosenToken);
+        _handleExternalCall(_gameId, gameNft.keyAddress, block.timestamp, game.price, buyer, _gameReceiver, _chosenToken);
     }
 
     //https://docs.chain.link/chainlink-automation/guides/log-trigger
+    //@Test
     function checkLog(Log calldata log, bytes memory) external view returns (bool upkeepNeeded, bytes memory performData){
-        if(s_allowedKeeperForwarders[msg.sender] != ONE) revert Trident_InvalidCaller(msg.sender);
+        if(s_allowedKeeperRelayers[msg.sender] != ONE) revert Trident_InvalidCaller(msg.sender); //@Test
+        if(s_allowlistedSenders[log.source] != ONE) revert Trident_InvalidLogEmissor(log.source); //@Test
 
-        string memory gameSymbol = bytes32ToString(log.topics[1]);
+        uint256 gameId = uint256(log.topics[1]);
         address buyer = address(uint160(uint256(log.topics[2])));
         uint256 transactionTime = uint256(log.topics[3]);
         address gameReceiver = address(uint160(uint256(log.topics[4])));
 
-        performData = abi.encode(gameSymbol, buyer, transactionTime, gameReceiver);
-        upkeepNeeded = true;
+        //emit CrossChainTrident_NewGameSold(_gameId, _buyer, block.timestamp, _gameReceiver, _value);
+        performData = abi.encode(gameId, buyer, transactionTime, gameReceiver);
+        upkeepNeeded = true;//@Test
     }
 
     //perform precisa escrever os dados recebidos do evento em um storage.
     //https://docs.chain.link/chainlink-automation/reference/automation-interfaces#ilogautomation
-    function performUpkeep(bytes calldata performData) external {
-        if(s_allowedKeeperForwarders[msg.sender] != ONE) revert Trident_InvalidCaller(msg.sender);
+    function performUpkeep(bytes calldata performData) external {//@Test
+        if(s_allowedKeeperRelayers[msg.sender] != ONE) revert Trident_InvalidCaller(msg.sender);
 
-        string memory gameSymbol;
+        uint256 gameId;
         address buyer;
         uint256 transactionTime;
         address gameReceiver;
         uint256 price;
 
-        (gameSymbol, buyer, transactionTime, gameReceiver, price) = abi.decode(performData, (string, address, uint256, address, uint256));
+        (gameId, buyer, transactionTime, gameReceiver, price) = abi.decode(performData, (uint256, address, uint256, address, uint256));//@Test
 
-        emit Trident_CrossChainBuyingPerformed(gameSymbol, transactionTime, price);
+        emit Trident_CrossChainBuyingPerformed(gameId, transactionTime, price);//@Test
 
         // i_functions.sendRequest(); //@AJUSTE Quais infos mando para o banco? Wallet Address / NFT Game Address / 
-        s_gamesCreated[gameSymbol].keyAddress.safeMint(gameReceiver, "");
+        s_gamesCreated[gameId].keyAddress.safeMint(gameReceiver, "");//@Test
     }
 
     //////////////
     ///INTERNAL///
     //////////////
-    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override onlyAllowlisted(any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address))){
+    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override onlyAllowlisted(any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address))){//@Test
 
-        s_ccipMessages[s_ccipCounter] = CCIPInfos({
+        s_ccipMessages[s_ccipCounter] = CCIPInfos({//@Test
             lastReceivedMessageId: any2EvmMessage.messageId,
             sourceChainSelector: any2EvmMessage.sourceChainSelector,
             lastReceivedText: abi.decode(any2EvmMessage.data, (string)),
@@ -336,13 +355,13 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
             lastReceivedAmount: any2EvmMessage.destTokenAmounts[0].amount
         });
 
-        emit TridentCCReceiver_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)),  abi.decode(any2EvmMessage.data, (string)));
+        emit TridentCCReceiver_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)),  abi.decode(any2EvmMessage.data, (string)));//@Test
     }
 
     /////////////
     ///PRIVATE///
     /////////////
-    function _handleExternalCall(string memory _gameSymbol,
+    function _handleExternalCall(uint256 _gameId,
                                  TridentNFT _keyAddress,
                                  uint256 _buyingDate,
                                  uint256 _value,
@@ -350,11 +369,11 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
                                  address _gameReceiver,
                                  ERC20 _chosenToken) private {
 
-        GameRelease memory gameNft = s_gamesCreated[_gameSymbol];
+        GameRelease memory gameNft = s_gamesCreated[_gameId];
 
         //EFFECTS
         ClientRecord memory newGame = ClientRecord({
-            gameSymbol: _gameSymbol,
+            gameName: gameNft.gameName,
             game: _keyAddress,
             buyingDate: _buyingDate,
             paidValue: _value
@@ -362,7 +381,7 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
 
         s_clientRecords[_gameReceiver].push(newGame);
 
-        emit Trident_NewGameSold(_gameSymbol, _buyer, _buyingDate, _gameReceiver);
+        emit Trident_NewGameSold(_gameId, gameNft.gameName, _buyer, _buyingDate, _gameReceiver);
 
         //INTERACTIONS
         // i_functions.sendRequest(); //@AJUSTE Quais infos mando para o banco? Wallet Address / NFT Game Address / 
@@ -373,16 +392,28 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     /////////////////
     ///VIEW & PURE///
     /////////////////
-    function getGamesCreated(string memory _gameSymbol) external view returns(GameRelease memory){
-        return s_gamesCreated[_gameSymbol];
+    function getAllowedRelayers(address _relayer) external view returns(uint256){
+        return s_allowedKeeperRelayers[_relayer];
     }
 
-    function getGamesInfo(string memory _gameSymbol) external view returns(GameInfos memory){
-        return s_gamesInfo[_gameSymbol];
+    function getAllowedSourceChains(uint64 _chainId) external view returns(uint256){
+        return s_allowlistedSourceChains[_chainId];
+    }
+
+    function getAllowedSenders(address _sender) external view returns(uint256){
+        return s_allowlistedSenders[_sender];
+    }
+
+    function getGamesCreated(uint256 _gameId) external view returns(GameRelease memory){
+        return s_gamesCreated[_gameId];//@Test
+    }
+
+    function getGamesInfo(uint256 _gameId) external view returns(GameInfos memory){
+        return s_gamesInfo[_gameId];//@Test
     }
 
     function getClientRecords(address _client) external view returns(ClientRecord[] memory){
-        return s_clientRecords[_client];
+        return s_clientRecords[_client];//@Test
     }
 
     function getAllowedTokens(ERC20 _tokenAddress) external view returns(uint256){
@@ -391,27 +422,5 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
 
     function getLastReceivedMessageDetails(uint256 _messageId) external view returns (CCIPInfos memory){
         return s_ccipMessages[_messageId];
-    }
-
-    //We use string just to turn it more redable in the Pitch. This functions is temporary.
-    function bytes32ToString(bytes32 _bytes32) public pure returns (string memory) {
-        bytes memory bytesArray = new bytes(32);
-        for (uint256 i = 0; i < 32; i++) {
-            bytesArray[i] = _bytes32[i];
-        }
-
-        uint256 lastIndex = 32;
-        for (uint256 j = 0; j < 32; j++) {
-            if (bytesArray[j] != 0) {
-                lastIndex = j + 1;
-            }
-        }
-
-        bytes memory trimmedBytes = new bytes(lastIndex);
-        for (uint256 k = 0; k < lastIndex; k++) {
-            trimmedBytes[k] = bytesArray[k];
-        }
-
-        return string(trimmedBytes);
     }
 }
