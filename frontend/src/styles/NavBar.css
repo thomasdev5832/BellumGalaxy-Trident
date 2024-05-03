@@ -52,6 +52,7 @@ a:hover {
 }
 
 .btn-launch {
+    width             : 120px;
     background-color  : #0D6A87;
     color             : white;
     padding           : .8em 1em;
