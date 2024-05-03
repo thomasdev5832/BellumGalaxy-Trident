@@ -1,0 +1,16 @@
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\bin\Debug\net8.0-windows\trident_launcher.exe
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\bin\Debug\net8.0-windows\trident_launcher.deps.json
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\bin\Debug\net8.0-windows\trident_launcher.runtimeconfig.json
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\bin\Debug\net8.0-windows\trident_launcher.dll
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\bin\Debug\net8.0-windows\trident_launcher.pdb
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\trident_launcher.Trident.resources
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\trident_launcher.csproj.GenerateResource.cache
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\trident_launcher.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\trident_launcher.AssemblyInfoInputs.cache
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\trident_launcher.AssemblyInfo.cs
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\trident_launcher.csproj.CoreCompileInputs.cache
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\trident_launcher.dll
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\refint\trident_launcher.dll
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\trident_launcher.pdb
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\trident_launcher.genruntimeconfig.cache
+C:\Users\schne\Documents\apps\trident_launcher\trident_launcher\obj\Debug\net8.0-windows\ref\trident_launcher.dll
