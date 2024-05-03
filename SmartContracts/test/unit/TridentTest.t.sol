@@ -61,13 +61,12 @@ contract TridentTest is Test {
 
     function test_setReleaseConditions() public createGame{
         vm.prank(Barba);
-        trident.setReleaseConditions("GTA12", 300, 150, 180 days);
+        trident.setReleaseConditions("GTA12", 300, 150);
 
         Trident.GameInfos memory info = trident.getGamesInfo("GTA12");
 
         assertEq(info.sellingDate, 300);
         assertEq(info.price, 150 ether);
-        assertEq(info.timeLock, 180 days);
         assertEq(info.copiesSold, 0);
     }
 
@@ -76,12 +75,12 @@ contract TridentTest is Test {
     function test_functionRevertsOnInvalidTokenSymbol() public createGame{
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(Trident_NonExistantGame.selector, address(0)));
-        trident.setReleaseConditions("GTA22", 300, 150, 180 days);
+        trident.setReleaseConditions("GTA22", 300, 150);
 
         vm.warp(301);
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(Trident_SetAValidSellingPeriod.selector, 300, 301));
-        trident.setReleaseConditions("GTA12", 300, 150, 180 days);
+        trident.setReleaseConditions("GTA12", 300, 150);
 
     }
 }

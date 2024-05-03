@@ -12,10 +12,10 @@ import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/l
 //////////////
 /// ERRORS ///
 //////////////
-error TridentAFunctions_UnexpectedRequestID(bytes32 requestId);
-error TridentAFunctions_EmptyArgs();
+error TridentMFunctions_UnexpectedRequestID(bytes32 requestId);
+error TridentMFunctions_EmptyArgs();
 
-contract TridentAFunctions is FunctionsClient, Ownable{
+contract TridentFunctions is FunctionsClient, Ownable{
     using FunctionsRequest for FunctionsRequest.Request;
 
     ///////////////////////
@@ -61,7 +61,7 @@ contract TridentAFunctions is FunctionsClient, Ownable{
     ////////////
     ///Events///
     ////////////
-    event TridentAFunctions_Response(bytes32 indexed requestId, bytes response, bytes err);
+    event TridentMFunctions_Response(bytes32 indexed requestId, bytes response, bytes err);
 
     ///////////////
     ///Modifiers///
@@ -93,7 +93,7 @@ contract TridentAFunctions is FunctionsClient, Ownable{
      * @return requestId The ID of the request
      */
     function sendRequest(string[] calldata _args) external onlyOwner returns (bytes32 requestId) {
-        if(_args.length < ONE) revert TridentAFunctions_EmptyArgs();
+        if(_args.length < ONE) revert TridentMFunctions_EmptyArgs();
 
         FunctionsRequest.Request memory req;
         // Initialize the request with JS code
@@ -131,7 +131,7 @@ contract TridentAFunctions is FunctionsClient, Ownable{
      * @param _err Any errors from the Functions request
     */
     function fulfillRequest(bytes32 _requestId, bytes memory _response, bytes memory _err) internal override {
-        if (s_responses[_requestId].exists == false ) revert TridentAFunctions_UnexpectedRequestID(_requestId);
+        if (s_responses[_requestId].exists == false ) revert TridentMFunctions_UnexpectedRequestID(_requestId);
         
         FunctionsResponse memory functions = s_responses[_requestId];
 
@@ -139,9 +139,8 @@ contract TridentAFunctions is FunctionsClient, Ownable{
         functions.lastResponse = _response;
         functions.lastError = _err;
 
-        emit TridentAFunctions_Response(_requestId, _response, _err);
+        emit TridentMFunctions_Response(_requestId, _response, _err);
     }
-
     /////////////
     ///private///
     /////////////
