@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState } from 'react';
 import '../styles/NavBar.css'
-import Logo from '../assets/logo.svg'
+import TridentName from '../assets/nametrident.png'
 
 function NavBar() {
     // adding the states 
@@ -17,8 +17,8 @@ function NavBar() {
     return (
           <nav className="navbar">
             {/* logo */}
-            <a href='#home'>
-                <img className="logo" src={Logo} />
+            <a href='#home' className='logo-wrap'>
+                <img className="logo" src={TridentName} />
             </a>
             <ul className={`navMenu ${isActive ? 'active' : ''}`}>
               <li onClick={removeActive}>
@@ -34,7 +34,7 @@ function NavBar() {
                 <a href='#home' className="navLink">Contact</a>
               </li>
               <li onClick={removeActive}>
-                <a href='#home' className="navLink">
+                <a href='/shop' className="navLink">
                     <button className='btn-launch'>Launch App</button>
                 </a>
               </li>
