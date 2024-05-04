@@ -1,0 +1,161 @@
+.store {
+    padding        : 10px;
+    background     : linear-gradient(0deg, #0a1124 0%, #10334e 100%);
+    color          : whitesmoke;
+    display        : flex;
+    flex-direction : column;
+    align-items    : center;
+    justify-content: center;
+}
+
+.banner-and-info {
+    margin-top     : 3em;
+    display        : flex;
+    align-items    : center;
+    justify-content: center;
+    gap            : 4em;
+    width          : 100%;
+}
+
+.banner {
+    text-align: center;
+    overflow  : hidden;
+    width     : fit-content;
+}
+
+.platform-info {
+    display        : flex;
+    flex-direction : column;
+    align-items    : center;
+    justify-content: center;
+    gap            : 1em;
+    max-width      : 400px;
+}
+
+.platform-info h2 {
+    font-size: 2.5em;
+}
+
+.platform-info p {
+    line-height: 1.4em;
+}
+
+.platform-info span {
+    background-color: #ffffff2b;
+    padding         : .5em;
+    font-weight     : bold;
+    text-align      : center;
+    width           : fit-content;
+}
+
+.banner-content {
+    cursor         : pointer;
+    display        : flex;
+    align-items    : center;
+    justify-content: space-between;
+    margin-bottom  : 1em;
+}
+
+.banner-content button {
+    color           : #afafaf;
+    margin          : auto .4em;
+    background-color: transparent;
+    border          : none;
+    font-size       : 2em;
+    cursor          : pointer;
+}
+
+.banner h2 {
+    text-align: center;
+    margin    : .5em;
+}
+
+.featured-gallery {
+    display        : flex;
+    justify-content: space-between;
+    align-items    : center;
+}
+
+.gallery {
+    text-align: center;
+    margin-top: 2em;
+}
+
+.gallery h2 {
+    margin: 1em .4em;
+}
+
+.games-gallery {
+    display        : flex;
+    flex-wrap      : wrap;
+    gap            : 20px;
+    justify-content: center;
+}
+
+.games-gallery>div {
+    flex     : 1 0 25%;
+    /* Permite no máximo 4 jogos por linha */
+    max-width: 20%;
+    /* Limita a largura máxima de cada item */
+    min-width: 200px;
+    /* Define a largura mínima para evitar que os jogos fiquem muito pequenos */
+}
+
+.middle {
+    height: 100vh;
+}
+
+@media (max-width: 768px) {
+    /* Versão para mobile */
+
+    .banner-and-info {
+        flex-direction: column;
+        gap           : 2em;
+    }
+
+    .platform-info {
+        text-align : center;
+        margin-left: 0em;
+        max-width  : 80%;
+    }
+
+    .banner-content button {
+        margin   : auto .2em;
+        font-size: 2em;
+    }
+
+    .banner h2 {
+        margin-top: 2em;
+    }
+
+    .games-gallery>div {
+        flex     : 1 0 45%;
+        max-width: none;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+
+    /* Versão para tablets */
+    .banner-and-info {
+        gap   : 1.5em;
+        margin: 2em;
+    }
+
+    .platform-info {
+        max-width  : 40%;
+        margin-left: 2em;
+    }
+
+    .games-gallery>div {
+        flex     : 1 0 30%;
+        /* Ajusta para até 3 jogos por linha em tablets */
+        max-width: 30%;
+        /* Limita a largura máxima para evitar itens muito largos */
+    }
+
+    .banner-content button {
+        font-size: 1.8em;
+        /* Reduz o tamanho dos botões para uma melhor aparência em tablets */
+    }
+}
