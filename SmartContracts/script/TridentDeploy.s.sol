@@ -9,11 +9,11 @@ contract TridentDeploy is Script {
     Trident trident;
     TridentFunctions functions;
 
-    function run(address _owner) public returns(Trident){
+    function run(address _owner, address _router) public returns(Trident){
         vm.startBroadcast();
 
         functions = new TridentFunctions(address(0), "1", 0, _owner);
-        trident = new Trident(_owner, functions, address(0));
+        trident = new Trident(_owner, functions, _router);
         
         vm.stopBroadcast();
 

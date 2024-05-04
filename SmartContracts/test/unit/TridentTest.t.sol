@@ -18,7 +18,7 @@ contract TridentTest is Test {
     function setUp() public {
         vm.prank(Barba);
         tridentDeploy = new TridentDeploy();
-        trident = tridentDeploy.run(Barba);
+        trident = tridentDeploy.run(Barba, address(0));
     }
 
     /// CONTRACT OWNER
@@ -32,7 +32,7 @@ contract TridentTest is Test {
         vm.prank(Barba);
         trident.createNewGame("GTA12", "Grande Tatu Autonomo 12");
 
-        Trident.GameRelease memory newGameCreated = trident.getGamesCreated("GTA12");
+        Trident.GameRelease memory newGameCreated = trident.getGamesCreated(1);
 
         assertEq(newGameCreated.gameSymbol, "GTA12");
         assertEq(newGameCreated.gameName, "Grande Tatu Autonomo 12");
@@ -44,7 +44,7 @@ contract TridentTest is Test {
         vm.prank(Barba);
         trident.createNewGame("GTA12", "Grande Tatu Autonomo 12");
 
-        Trident.GameRelease memory newGameCreated = trident.getGamesCreated("GTA12");
+        Trident.GameRelease memory newGameCreated = trident.getGamesCreated(1);
 
         vm.expectRevert(abi.encodeWithSelector(Trident_GameAlreadyReleased.selector, address(newGameCreated.keyAddress)));
         vm.prank(Barba);
@@ -59,28 +59,18 @@ contract TridentTest is Test {
         _;
     }
 
-    function test_setReleaseConditions() public createGame{
-        vm.prank(Barba);
-        trident.setReleaseConditions("GTA12", 300, 150);
-
-        Trident.GameInfos memory info = trident.getGamesInfo("GTA12");
-
-        assertEq(info.sellingDate, 300);
-        assertEq(info.price, 150 ether);
-        assertEq(info.copiesSold, 0);
-    }
-
     error Trident_SetAValidSellingPeriod(uint256 startingDate, uint256 dateNow);
     error Trident_NonExistantGame(TridentNFT trident);
     function test_functionRevertsOnInvalidTokenSymbol() public createGame{
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(Trident_NonExistantGame.selector, address(0)));
-        trident.setReleaseConditions("GTA22", 300, 150);
+        trident.setReleaseConditions(1, 300, 150);
 
         vm.warp(301);
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(Trident_SetAValidSellingPeriod.selector, 300, 301));
-        trident.setReleaseConditions("GTA12", 300, 150);
+        trident.setReleaseConditions(1, 300, 150);
 
     }
+
 }

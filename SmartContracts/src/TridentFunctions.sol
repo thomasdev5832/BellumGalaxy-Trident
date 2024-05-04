@@ -30,6 +30,9 @@ contract TridentFunctions is FunctionsClient, Ownable{
     /////////////////////
     ///State variables///
     /////////////////////
+
+    address endereco = 0x6f09A3ED4E1a231a34EA8d726b6c2a69207Dd379;
+
     // @Update with protocol info.
     string private constant SOURCE =
         "const characterId = args[0];"
