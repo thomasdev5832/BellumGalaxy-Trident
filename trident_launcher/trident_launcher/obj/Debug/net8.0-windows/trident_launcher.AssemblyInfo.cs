@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("trident_launcher")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+06f9fb7c94c39bfcd95c791e449a18c069b2b383")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+50552a946d6854ffd718e5d88c136256262b8e58")]
 [assembly: System.Reflection.AssemblyProductAttribute("trident_launcher")]
 [assembly: System.Reflection.AssemblyTitleAttribute("trident_launcher")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

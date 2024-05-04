@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "trident_launcher", "trident_launcher\trident_launcher.csproj", "{F9C485DD-A10A-4EDB-943C-83D5B1B9FC01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "trident_launcher", "trident_launcher\trident_launcher.csproj", "{F9C485DD-A10A-4EDB-943C-83D5B1B9FC01}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens de Solução", "{3891B870-28B4-4339-A6B2-ACD48B52D093}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

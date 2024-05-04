@@ -32,19 +32,140 @@ namespace trident_launcher
         /// </summary>
         private void InitializeComponent()
         {
-            button1 = new Button();
+            components = new System.ComponentModel.Container();
+            emailText = new TextBox();
+            passwordText = new TextBox();
+            Email = new Label();
+            password = new Label();
+            login = new Button();
+            contextMenuStrip1 = new ContextMenuStrip(components);
+            loginBox = new GroupBox();
+            menuGroup = new GroupBox();
+            initTrident = new Button();
+            instructionText = new TextBox();
+            textSaudationTrident = new TextBox();
+            walletBox = new TextBox();
+            loginBox.SuspendLayout();
+            menuGroup.SuspendLayout();
             SuspendLayout();
             // 
-            // button1
+            // emailText
             // 
-            button1.BackColor = SystemColors.ButtonHighlight;
-            button1.Location = new Point(273, 190);
-            button1.Name = "button1";
-            button1.Size = new Size(227, 52);
-            button1.TabIndex = 0;
-            button1.Text = "Iniciar";
-            button1.UseVisualStyleBackColor = false;
-            button1.Click += button1_Click;
+            emailText.Location = new Point(79, 56);
+            emailText.Name = "emailText";
+            emailText.Size = new Size(261, 23);
+            emailText.TabIndex = 0;
+            // 
+            // passwordText
+            // 
+            passwordText.Location = new Point(79, 112);
+            passwordText.Name = "passwordText";
+            passwordText.Size = new Size(261, 23);
+            passwordText.TabIndex = 1;
+            passwordText.UseSystemPasswordChar = true;
+            // 
+            // Email
+            // 
+            Email.AccessibleRole = AccessibleRole.None;
+            Email.AutoSize = true;
+            Email.Location = new Point(79, 38);
+            Email.Name = "Email";
+            Email.Size = new Size(36, 15);
+            Email.TabIndex = 2;
+            Email.Text = "Email";
+            // 
+            // password
+            // 
+            password.AutoSize = true;
+            password.Location = new Point(79, 94);
+            password.Name = "password";
+            password.Size = new Size(39, 15);
+            password.TabIndex = 3;
+            password.Text = "Senha";
+            // 
+            // login
+            // 
+            login.Location = new Point(124, 177);
+            login.Name = "login";
+            login.Size = new Size(149, 61);
+            login.TabIndex = 4;
+            login.Text = "Logar";
+            login.UseVisualStyleBackColor = true;
+            login.Click += login_Click;
+            // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(61, 4);
+            // 
+            // loginBox
+            // 
+            loginBox.Controls.Add(login);
+            loginBox.Controls.Add(emailText);
+            loginBox.Controls.Add(passwordText);
+            loginBox.Controls.Add(password);
+            loginBox.Controls.Add(Email);
+            loginBox.Location = new Point(254, 132);
+            loginBox.Name = "loginBox";
+            loginBox.Size = new Size(412, 279);
+            loginBox.TabIndex = 6;
+            loginBox.TabStop = false;
+            // 
+            // menuGroup
+            // 
+            menuGroup.AutoSize = true;
+            menuGroup.Controls.Add(initTrident);
+            menuGroup.Controls.Add(instructionText);
+            menuGroup.Controls.Add(textSaudationTrident);
+            menuGroup.Location = new Point(1, 2);
+            menuGroup.Name = "menuGroup";
+            menuGroup.Size = new Size(995, 537);
+            menuGroup.TabIndex = 7;
+            menuGroup.TabStop = false;
+            menuGroup.Visible = false;
+            menuGroup.Enter += menuGroup_Enter;
+            // 
+            // initTrident
+            // 
+            initTrident.Location = new Point(415, 206);
+            initTrident.Name = "initTrident";
+            initTrident.Size = new Size(167, 73);
+            initTrident.TabIndex = 7;
+            initTrident.Text = "Iniciar";
+            initTrident.UseVisualStyleBackColor = true;
+            initTrident.Visible = false;
+            initTrident.Click += initTrident_Click;
+            // 
+            // instructionText
+            // 
+            instructionText.BorderStyle = BorderStyle.None;
+            instructionText.Location = new Point(360, 142);
+            instructionText.Multiline = true;
+            instructionText.Name = "instructionText";
+            instructionText.Size = new Size(277, 31);
+            instructionText.TabIndex = 8;
+            instructionText.Text = "Para iniciar o App clique em Iniciar!";
+            instructionText.TextAlign = HorizontalAlignment.Center;
+            instructionText.TextChanged += textBox2_TextChanged_1;
+            // 
+            // textSaudationTrident
+            // 
+            textSaudationTrident.BorderStyle = BorderStyle.None;
+            textSaudationTrident.Font = new Font("Segoe UI", 12F);
+            textSaudationTrident.Location = new Point(0, 0);
+            textSaudationTrident.Name = "textSaudationTrident";
+            textSaudationTrident.Size = new Size(160, 22);
+            textSaudationTrident.TabIndex = 7;
+            textSaudationTrident.Text = "Bem vindo a Trident !";
+            textSaudationTrident.TextChanged += textBox1_TextChanged;
+            // 
+            // walletBox
+            // 
+            walletBox.BorderStyle = BorderStyle.None;
+            walletBox.Location = new Point(823, 12);
+            walletBox.Name = "walletBox";
+            walletBox.Size = new Size(131, 16);
+            walletBox.TabIndex = 9;
             // 
             // Trident
             // 
@@ -52,26 +173,36 @@ namespace trident_launcher
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ButtonHighlight;
             BackgroundImageLayout = ImageLayout.Zoom;
-            ClientSize = new Size(800, 450);
-            Controls.Add(button1);
+            ClientSize = new Size(994, 540);
+            Controls.Add(menuGroup);
+            Controls.Add(walletBox);
+            Controls.Add(loginBox);
             Name = "Trident";
             Text = "Trident";
+            TransparencyKey = Color.Gray;
             Load += Form1_Load;
+            loginBox.ResumeLayout(false);
+            loginBox.PerformLayout();
+            menuGroup.ResumeLayout(false);
+            menuGroup.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
-        private void button1_Click(object sender, EventArgs e)
-{
-            Process[] processes = Process.GetProcesses();
-
-            TridentCore tridentCore = new TridentCore();
-            string retorno = tridentCore.manipulateProcess(processes);
-
-            // Cria uma instância do compilador C#
-
-        }
         #endregion
 
-        private Button button1;
+        private Button initApp;
+        private TextBox emailText;
+        private TextBox passwordText;
+        private Label Email;
+        private Label password;
+        private Button login;
+        private ContextMenuStrip contextMenuStrip1;
+        private GroupBox loginBox;
+        private Button initTrident;
+        private GroupBox menuGroup;
+        private TextBox textSaudationTrident;
+        private TextBox instructionText;
+        private TextBox walletBox;
     }
 }
