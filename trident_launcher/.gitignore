@@ -1,0 +1,29 @@
+# Arquivos e diretórios gerados durante a compilação
+bin/
+obj/
+
+# Arquivos de configuração do Visual Studio
+.vs/
+*.vscode/
+
+# Arquivos de dependências do NuGet
+packages/
+*.nupkg
+*.paket
+
+# Arquivos de log e de depuração
+*.log
+*.pdb
+*.user
+
+# Arquivos temporários
+*.tmp
+*.bak
+
+# Arquivos de saída do msbuild
+*.exe
+*.dll
+
+# Outros arquivos e diretórios gerados automaticamente
+[Tt]emp/
+[Oo]bj/
