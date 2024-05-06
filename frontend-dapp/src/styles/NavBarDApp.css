@@ -13,6 +13,7 @@ a {
     color          : #9E9FA1;
     font-size      : 16px;
     font-weight    : 600;
+    margin-left    : 10%;
 }
 
 a:hover {
@@ -46,7 +47,7 @@ a:hover {
 .navMenu {
     display        : flex;
     justify-content: flex-end;
-    align-items    : center;
+    align-items    : left;
     gap            : 60px;
 }
 
@@ -71,7 +72,7 @@ a:hover {
 
 /* media queries */
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 1224px) {
 
     /* hamburger */
     .hamburger {
@@ -112,7 +113,7 @@ a:hover {
         top             : 70px;
         left            : -100%;
         text-align      : start;
-        width           : 100%;
+        width           : 40%;
         transition      : 0.3s ease-in-out;
         background-color: #0a1124;
         padding         : 10px;
