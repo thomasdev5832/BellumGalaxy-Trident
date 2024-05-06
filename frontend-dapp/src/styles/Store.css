@@ -9,12 +9,12 @@
 }
 
 .banner-and-info {
-    margin-top     : 3em;
     display        : flex;
     align-items    : center;
     justify-content: center;
     gap            : 4em;
     width          : 100%;
+    padding        : 4em;
 }
 
 .banner {
@@ -33,7 +33,9 @@
 }
 
 .platform-info h2 {
-    font-size: 2.5em;
+    font-size     : 2.5em;
+    text-transform: uppercase;
+    font-weight   : 700;
 }
 
 .platform-info p {
@@ -110,11 +112,12 @@
 
     .banner-and-info {
         flex-direction: column;
-        gap           : 2em;
+        gap           : 1em;
+        padding       : .1em;
+        margin-top    : 2em;
     }
 
     .platform-info {
-        text-align : center;
         margin-left: 0em;
         max-width  : 80%;
     }
@@ -138,8 +141,9 @@
 
     /* Versão para tablets */
     .banner-and-info {
-        gap   : 1.5em;
-        margin: 2em;
+        gap       : 1.5em;
+        padding   : 1em;
+        margin-top: 1em;
     }
 
     .platform-info {
