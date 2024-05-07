@@ -74,7 +74,7 @@ namespace trident_launcher
             login.Click += login_Click;
             login.FlatStyle = FlatStyle.Flat; // Define o estilo do botão como Flat
             login.FlatAppearance.BorderSize = 0; // Remove a borda do botão
-            login.BackColor = Color.FromArgb(128, Color.Black); // Define a opacidade para 50%
+            login.BackColor = Color.FromArgb(128, Color.Black);
             login.ForeColor = Color.White;
 
             // 
