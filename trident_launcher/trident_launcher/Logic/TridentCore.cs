@@ -46,7 +46,7 @@ namespace tridentCore
 
                     }
                 }
-                return $"{retorno}";
+                return $"Sucesso: {retorno}";
             }
             catch (Exception ex) {
 
