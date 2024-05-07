@@ -18,21 +18,129 @@ import gameImage12 from '../assets/game-images/game-12.jpg';
 function Store() {
   
   const featuredGames = [
-    { title: 'STAR WARS Jedi: Fallen Order™', price: 99.99, image: gameImage1 },
-    { title: 'Gray Zone Warfare', price: 109.99, image: gameImage2 },
-    { title: 'Battlefield 2042', price: 79.99, image: gameImage3 },
-    { title: 'Counter-Strike 2', price: 79.99, image: gameImage4 },
+    { 
+      title: 'STAR WARS Jedi: Fallen Order™', 
+      price: 99.99, 
+      image: gameImage1, 
+      category: 'Action', 
+      subcategory: 'Adventure', 
+      rating: 8.5, 
+      description: 'Experience the epic journey of a Jedi in this action-packed adventure.', 
+      downloads: 1500000 
+    },
+    { 
+      title: 'Gray Zone Warfare', 
+      price: 109.99, 
+      image: gameImage2, 
+      category: 'Strategy', 
+      subcategory: 'War', 
+      rating: 7.2, 
+      description: 'Plan and execute intricate warfare strategies.', 
+      downloads: 800000 
+    },
+    { 
+      title: 'Battlefield 2042', 
+      price: 79.99, 
+      image: gameImage3, 
+      category: 'FPS', 
+      subcategory: 'Shooter', 
+      rating: 7.8, 
+      description: 'Experience the chaos of large-scale multiplayer battles.', 
+      downloads: 3000000 
+    },
+    { 
+      title: 'Counter-Strike 2', 
+      price: 79.99, 
+      image: gameImage4, 
+      category: 'FPS', 
+      subcategory: 'Shooter', 
+      rating: 9.1, 
+      description: 'Classic multiplayer shooter with new and improved mechanics.', 
+      downloads: 4000000 
+    },
   ];
 
   const games = [
-    { title: 'FC24', price: 59.99, image: gameImage5 },
-    { title: 'MADDEN 24', price: 49.99, image: gameImage6 },
-    { title: 'Forza Horizon 4', price: 39.99, image: gameImage7 },
-    { title: 'Sea of Thieves', price: 29.99, image: gameImage8 },
-    { title: 'Rust', price: 29.99, image: gameImage9 },
-    { title: 'Valheim', price: 29.99, image: gameImage10 },
-    { title: 'HELLDIVERS™ 2', price: 29.99, image: gameImage11 },
-    { title: 'Warframe', price: 29.99, image: gameImage12 },
+    { 
+      title: 'FC24', 
+      price: 59.99, 
+      image: gameImage5, 
+      category: 'Sports', 
+      subcategory: 'Soccer', 
+      rating: 8.0, 
+      description: 'Experience the most realistic soccer simulation.', 
+      downloads: 2500000 
+    },
+    { 
+      title: 'MADDEN 24', 
+      price: 49.99, 
+      image: gameImage6, 
+      category: 'Sports', 
+      subcategory: 'Football', 
+      rating: 7.5, 
+      description: 'Enjoy the latest in American football simulation.', 
+      downloads: 1800000 
+    },
+    { 
+      title: 'Forza Horizon 4', 
+      price: 39.99, 
+      image: gameImage7, 
+      category: 'Racing', 
+      subcategory: 'Simulation', 
+      rating: 9.2, 
+      description: 'Experience the open-world racing adventure.', 
+      downloads: 3200000 
+    },
+    { 
+      title: 'Sea of Thieves', 
+      price: 29.99, 
+      image: gameImage8, 
+      category: 'Adventure', 
+      subcategory: 'Pirates', 
+      rating: 8.3, 
+      description: 'Live the life of a pirate in this open-world multiplayer game.', 
+      downloads: 2800000 
+    },
+    { 
+      title: 'Rust', 
+      price: 29.99, 
+      image: gameImage9, 
+      category: 'Survival', 
+      subcategory: 'Open World', 
+      rating: 7.8, 
+      description: 'Survive and thrive in a harsh environment.', 
+      downloads: 1400000 
+    },
+    { 
+      title: 'Valheim', 
+      price: 29.99, 
+      image: gameImage10, 
+      category: 'Survival', 
+      subcategory: 'Vikings', 
+      rating: 8.7, 
+      description: 'Explore the mystical Viking world in this open-world survival game.', 
+      downloads: 1200000 
+    },
+    { 
+      title: 'HELLDIVERS™ 2', 
+      price: 29.99, 
+      image: gameImage11, 
+      category: 'Action', 
+      subcategory: 'Shooter', 
+      rating: 7.5, 
+      description: 'Fight against aliens in this cooperative action shooter.', 
+      downloads: 900000 
+    },
+    { 
+      title: 'Warframe', 
+      price: 29.99, 
+      image: gameImage12, 
+      category: 'Action', 
+      subcategory: 'MMO', 
+      rating: 9.0, 
+      description: 'Experience the fast-paced action in this multiplayer MMO.', 
+      downloads: 3500000 
+    },
   ];
 
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -74,7 +182,7 @@ function Store() {
         <section className="banner">
           <h2>Featured Games</h2>
           <div className="banner-content">
-            <button onClick={prevSlide}>&lt;</button> 
+            <button onClick={prevSlide}>&lt;</button>
             <Game {...featuredGames[currentSlide]} />
             <button onClick={nextSlide}>&gt;</button>
           </div>
