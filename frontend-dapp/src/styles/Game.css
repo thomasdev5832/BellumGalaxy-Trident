@@ -1,17 +1,15 @@
 .game {
-    border-right   : 2px solid #f5f5f545;
-    border-bottom  : 2px solid #f5f5f545;
-    border-left    : 2px solid #f5f5f545;
-    border-radius  : 4px;
-    text-align     : center;
-    transition     : transform 0.2s;
-    cursor         : pointer;
-    display        : flex;
-    flex-direction : column;
-    align-items    : center;
-    justify-content: center;
-    padding        : 1em;
-    gap            : .4em;
+    background-color: #f0f8ff0c;
+    border-radius   : 4px;
+    text-align      : center;
+    transition      : transform 0.2s;
+    display         : flex;
+    flex-direction  : column;
+    align-items     : left;
+    justify-content : start;
+    text-align      : left;
+    padding         : 2em;
+    gap             : .4em;
 }
 
 .game:hover {
@@ -28,7 +26,76 @@
     margin-top: .5em;
 }
 
-.game .game-price {
+.game .game-category {
+    font-size       : 12px;
+    font-weight     : 600;
+    color           : #0F324C;
+    background-color: #ffffffb0;
+    width           : fit-content;
+    padding         : .2em .4em;
+    border-radius   : 2px;
+}
+
+.game-rating {
+    border          : 1px solid #80808041;
+    border-radius   : 5px;
+    background-color: #f0f8ff0c;
+    width           : fit-content;
+    padding         : 1em;
+    display         : flex;
+    flex-direction  : column;
+    font-size       : 10px;
+    font-size       : 10px;
+    font-weight     : 600;
+    display         : flex;
+    flex-direction  : column;
+}
+
+.game-rating span {
+    font-size  : 20px;
+    font-weight: 600;
+}
+
+.game-description {
+    font-size : 12px;
+    text-align: left;
+}
+
+.game-downloads {
+    border          : 1px solid #80808041;
+    border-radius   : 5px;
+    background-color: #f0f8ff0c;
+    width           : fit-content;
+    padding         : 1em;
+    display         : flex;
+    flex-direction  : column;
+    font-size       : 10px;
+}
+
+.game-downloads span {
+    font-size  : 20px;
+    font-weight: 600;
+}
+
+.rating-and-downloads-wrap {
+    display        : flex;
+    flex-direction : row;
+    align-items    : center;
+    justify-content: space-between;
+    gap            : 1em;
+}
+
+.game-price-and-buy-button-wrap {
+    display        : flex;
+    flex-direction : row;
+    align-items    : center;
+    justify-content: space-between;
+    gap            : 1em;
+}
+
+.game-price {
+    width           : fit-content;
+    height          : fit-content;
     display         : flex;
     flex-direction  : column;
     align-items     : center;
@@ -39,31 +106,27 @@
     color           : yellowgreen;
     background-color: #80808080;
     padding         : .3em .4em .2em;
-    width           : fit-content;
     border-radius   : 3px;
 }
 
-.game .game-category {
-    text-align : center;
-    font-size  : 12px;
-    font-weight: 600;
-    color      : #a7a7a7c0;
+.buy-button {
+    width           : fit-content;
+    height          : fit-content;
+    display         : flex;
+    flex-direction  : column;
+    align-items     : center;
+    justify-content : center;
+    margin-top      : .2em;
+    font-size       : 18px;
+    font-weight     : 600;
+    background-color: yellowgreen;
+    color           : #303030;
+    padding         : .3em .8em .3em;
+    border-radius   : 3px;
+    border          : none;
+    cursor          : pointer;
 }
 
-.game-rating {}
-
-.game-description {
-    font-size : 12px;
-    text-align: left;
-}
-
-.game-downloads {
-    display       : flex;
-    flex-direction: column;
-    font-size     : 10px;
-}
-
-.game-downloads span {
-    font-size  : 20px;
-    font-weight: 600;
+.buy-button:hover {
+    background-color: #99cd32b0;
 }

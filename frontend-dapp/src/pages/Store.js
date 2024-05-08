@@ -182,9 +182,9 @@ function Store() {
         <section className="banner">
           <h2>Featured Games</h2>
           <div className="banner-content">
-            <button onClick={prevSlide}>&lt;</button>
+            <button className='slide-button' onClick={prevSlide}>&lt;</button>
             <Game {...featuredGames[currentSlide]} />
-            <button onClick={nextSlide}>&gt;</button>
+            <button className='slide-button' onClick={nextSlide}>&gt;</button>
           </div>
         </section>
       </div>

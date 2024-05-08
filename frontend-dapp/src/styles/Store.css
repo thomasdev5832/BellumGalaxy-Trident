@@ -58,7 +58,7 @@
     margin-bottom  : 1em;
 }
 
-.banner-content button {
+.banner-content .slide-button {
     color           : #afafaf;
     margin          : auto .4em;
     background-color: transparent;
@@ -96,11 +96,8 @@
 
 .games-gallery>div {
     flex     : 1 0 25%;
-    /* Permite no máximo 4 jogos por linha */
     max-width: 20%;
-    /* Limita a largura máxima de cada item */
     min-width: 200px;
-    /* Define a largura mínima para evitar que os jogos fiquem muito pequenos */
 }
 
 .middle {
@@ -153,13 +150,8 @@
 
     .games-gallery>div {
         flex     : 1 0 30%;
-        /* Ajusta para até 3 jogos por linha em tablets */
         max-width: 30%;
-        /* Limita a largura máxima para evitar itens muito largos */
     }
 
-    .banner-content button {
-        font-size: 1.8em;
-        /* Reduz o tamanho dos botões para uma melhor aparência em tablets */
-    }
+    .banner-content .slide-button {}
 }
