@@ -84,6 +84,7 @@
     .game {
         flex-basis: 100%;
         max-width : none;
+        margin    : 1em;
     }
 
     .chart-list section {
