@@ -35,11 +35,11 @@ namespace trident_launcher
             components = new System.ComponentModel.Container();
             contextMenuStrip1 = new ContextMenuStrip(components);
             menuGroup = new GroupBox();
+            LogonButton = new Button();
             initTrident = new Button();
             instructionText = new TextBox();
             textSaudationTrident = new TextBox();
             walletBox = new TextBox();
-            LogonButton = new Button();
             menuGroup.SuspendLayout();
             SuspendLayout();
             // 
@@ -61,6 +61,16 @@ namespace trident_launcher
             menuGroup.TabIndex = 7;
             menuGroup.TabStop = false;
             menuGroup.Enter += menuGroup_Enter;
+            // 
+            // LogonButton
+            // 
+            LogonButton.Location = new Point(915, 13);
+            LogonButton.Name = "LogonButton";
+            LogonButton.Size = new Size(66, 30);
+            LogonButton.TabIndex = 9;
+            LogonButton.Text = "Sair";
+            LogonButton.UseVisualStyleBackColor = true;
+            LogonButton.Click += LogonButton_Click;
             // 
             // initTrident
             // 
@@ -102,16 +112,6 @@ namespace trident_launcher
             walletBox.Name = "walletBox";
             walletBox.Size = new Size(131, 16);
             walletBox.TabIndex = 9;
-            // 
-            // LogonButton
-            // 
-            LogonButton.Location = new Point(915, 13);
-            LogonButton.Name = "LogonButton";
-            LogonButton.Size = new Size(66, 30);
-            LogonButton.TabIndex = 9;
-            LogonButton.Text = "Sair";
-            LogonButton.UseVisualStyleBackColor = true;
-            LogonButton.Click += LogonButton_Click;
             // 
             // Trident
             // 
