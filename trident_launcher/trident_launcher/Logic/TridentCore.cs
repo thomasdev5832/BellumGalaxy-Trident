@@ -41,7 +41,6 @@ namespace tridentCore
                         Console.WriteLine($"\nTempo do processo = {process.StartTime}");
                         Console.WriteLine($"\nProcesso encerrado: {isClosed}");
                         process.Kill();
-                        break;
                         }
 
                     }
