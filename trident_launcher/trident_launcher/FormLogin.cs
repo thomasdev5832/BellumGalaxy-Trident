@@ -67,5 +67,20 @@ namespace trident_launcher
         {
 
         }
+
+        private void password_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void loginBox_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void emailText_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace trident_launcher
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
+        ///groupBox
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -20,6 +20,7 @@ namespace trident_launcher
             }
             base.Dispose(disposing);
         }
+
         #region Windows Form Designer generated code
 
         /// <summary>
@@ -28,66 +29,41 @@ namespace trident_launcher
         /// </summary>
         private void InitializeComponent()
         {
-            GroupBox loginBox;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormLogin));
             login = new Button();
             emailText = new TextBox();
             passwordText = new TextBox();
             password = new Label();
             Email = new Label();
-            loginBox = new GroupBox();
-            loginBox.SuspendLayout();
+            loginBox = new PictureBox();
+            ((System.ComponentModel.ISupportInitialize)loginBox).BeginInit();
             SuspendLayout();
-            // 
-            // loginBox
-            // 
-            loginBox.AccessibleDescription = "Caixa para login";
-            loginBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            loginBox.BackColor = Color.FromArgb(128, 0, 0, 100);
-            loginBox.Controls.Add(login);
-            loginBox.Controls.Add(emailText);
-            loginBox.Controls.Add(passwordText);
-            loginBox.Controls.Add(password);
-            loginBox.Controls.Add(Email);
-            loginBox.Location = new Point(324, 257);
-            loginBox.Margin = new Padding(0);
-            loginBox.Name = "loginBox";
-            loginBox.Padding = new Padding(0);
-            loginBox.Size = new Size(415, 279);
-            loginBox.TabIndex = 7;
-            loginBox.TabStop = false;
-            loginBox.Enter += loginBox_Enter;
-            loginBox.FlatStyle = FlatStyle.Flat; // Define o estilo do botão como Flat
-            loginBox.FlatStyle = FlatStyle.Flat;
-            loginBox.ForeColor = Color.FromArgb(0, 0, 0, 0);
             // 
             // login
             // 
-            login.BackColor = Color.FromArgb(128, 0, 0, 100);
+            login.BackColor = Color.FromArgb(240, 0, 0, 0);
+            login.FlatAppearance.BorderSize = 0;
+            login.FlatStyle = FlatStyle.Flat;
             login.ForeColor = Color.White;
-            login.Location = new Point(122, 183);
+            login.Location = new Point(380, 366);
             login.Name = "login";
-            login.Size = new Size(149, 61);
+            login.Size = new Size(289, 61);
             login.TabIndex = 4;
             login.Text = "Logar";
             login.UseVisualStyleBackColor = false;
             login.Click += login_Click;
-            login.FlatStyle = FlatStyle.Flat; // Define o estilo do botão como Flat
-            login.FlatAppearance.BorderSize = 0; // Remove a borda do botão
-            login.BackColor = Color.FromArgb(128, Color.Black);
-            login.ForeColor = Color.White;
-
             // 
             // emailText
             // 
-            emailText.Location = new Point(64, 56);
+            emailText.Location = new Point(380, 221);
             emailText.Name = "emailText";
             emailText.Size = new Size(289, 23);
             emailText.TabIndex = 0;
+            emailText.TextChanged += emailText_TextChanged;
             // 
             // passwordText
             // 
-            passwordText.Location = new Point(64, 112);
+            passwordText.Location = new Point(380, 292);
             passwordText.Name = "passwordText";
             passwordText.Size = new Size(289, 23);
             passwordText.TabIndex = 1;
@@ -97,36 +73,52 @@ namespace trident_launcher
             // 
             password.AutoSize = true;
             password.ForeColor = Color.White;
-            password.Location = new Point(61, 91);
+            password.Location = new Point(380, 274);
             password.Name = "password";
             password.Size = new Size(39, 15);
             password.TabIndex = 3;
             password.Text = "Senha";
+            password.Click += password_Click;
             // 
             // Email
             // 
             Email.AccessibleRole = AccessibleRole.None;
             Email.AutoSize = true;
             Email.ForeColor = Color.White;
-            Email.Location = new Point(61, 35);
+            Email.Location = new Point(380, 203);
             Email.Name = "Email";
             Email.Size = new Size(36, 15);
             Email.TabIndex = 2;
             Email.Text = "Email";
             Email.Click += Email_Click;
             // 
+            // loginBox
+            // 
+            loginBox.BackColor = Color.FromArgb(190, 0, 0, 0);
+            loginBox.Location = new Point(292, 153);
+            loginBox.Name = "loginBox";
+            loginBox.Size = new Size(456, 353);
+            loginBox.TabIndex = 1;
+            loginBox.TabStop = false;
+            loginBox.Click += loginBox_Click;
+            // 
             // FormLogin
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoSize = true;
-            BackColor = Color.MidnightBlue;
+            BackColor = Color.Black;
             BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
             BackgroundImageLayout = ImageLayout.Center;
-            ClientSize = new Size(1035, 679);
+            ClientSize = new Size(1016, 679);
+            Controls.Add(passwordText);
+            Controls.Add(login);
+            Controls.Add(emailText);
+            Controls.Add(password);
+            Controls.Add(Email);
             Controls.Add(loginBox);
             Cursor = Cursors.No;
-            ForeColor = SystemColors.ButtonHighlight;
+            ForeColor = Color.White;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "FormLogin";
@@ -134,18 +126,17 @@ namespace trident_launcher
             ShowIcon = false;
             Text = "Login Trident";
             Load += FormLogin_Load;
-            loginBox.ResumeLayout(false);
-            loginBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)loginBox).EndInit();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
-
-        private GroupBox loginBox;
         private Button login;
         private TextBox emailText;
         private TextBox passwordText;
         private Label password;
         private Label Email;
+        private PictureBox loginBox;
     }
 }
