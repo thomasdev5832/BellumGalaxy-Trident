@@ -1,11 +1,13 @@
 # Arquivos e diretórios gerados durante a compilação
-trindent_launcher/bin/
-trindent_launcher/.vs/
-trindent_launcher/obj/
-
+trident_launcher/bin/
+trident_launcher/.vs/
+trident_launcher/obj/
+trident_launcher/obj/*
 
 # Arquivos de configuração do Visual Studio
+/.vs/
 .vs/
+
 *.vscode/
 
 # Arquivos de dependências do NuGet
