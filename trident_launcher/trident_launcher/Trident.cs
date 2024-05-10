@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using trident_launcher_pooling;
 using tridentCore;
+using trident_launcher_pooling;
 
 namespace trident_launcher
 {
@@ -29,10 +31,13 @@ namespace trident_launcher
 
         private void initTrident_Click(object sender, EventArgs e)
         {
-            Process[] processes = Process.GetProcesses();
+           
+            PoolingVerifyGames tridentPooling = new PoolingVerifyGames();
+            Thread pooling = new Thread(() => tridentPooling.initPooling());
+            pooling.Start();
+            Button buttonStop = new Button();
 
-            TridentCore tridentCore = new TridentCore();
-            string retorno = tridentCore.manipulateProcess(processes);
+           
         }
 
         private void menuGroup_Enter(object sender, EventArgs e)

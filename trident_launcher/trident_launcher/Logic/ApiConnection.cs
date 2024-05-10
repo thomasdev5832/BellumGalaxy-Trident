@@ -18,7 +18,8 @@ namespace tridentApi
         public List<Games> getGames()
         {
             games = new List<Games> {
-            new Games { Name = "Roblox", Isbloked = true, durationGame = new DateTime(2024, 5, 2, 10, 0, 0)}
+            new Games { Name = "Roblox", Isbloked = true, durationGame = new DateTime(2024, 5, 2, 10, 0, 0)},
+            new Games { Name = "BlackDesert", Isbloked = false, durationGame = new DateTime(2024, 5, 2, 10, 0, 0)},
         };
             return games;
         }
