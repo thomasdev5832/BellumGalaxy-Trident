@@ -1,6 +1,8 @@
 # Arquivos e diretórios gerados durante a compilação
-bin/
-obj/
+trindent_launcher/bin/
+trindent_launcher/.vs/
+trindent_launcher/obj/
+
 
 # Arquivos de configuração do Visual Studio
 .vs/
