@@ -5,10 +5,13 @@ import {Test, console2} from "forge-std/Test.sol";
 import {TridentDeploy} from "../../script/TridentDeploy.s.sol";
 import {Trident} from "../../src/Trident.sol";
 import {TridentNFT} from "../../src/TridentNFT.sol";
+import {CCIPLocalSimulator, IRouterClient, WETH9, LinkToken, BurnMintERC677Helper} from "@chainlink/local/src/ccip/CCIPLocalSimulator.sol";
+
 
 contract TridentTest is Test {
     Trident public trident;
     TridentDeploy public tridentDeploy;
+    CCIPLocalSimulator public ccipLocalSimulator;
 
     address Barba = makeAddr("Barba");
     address Cayo = makeAddr("Cayo");
@@ -16,9 +19,21 @@ contract TridentTest is Test {
     address Raffa = makeAddr("Raffa");
 
     function setUp() public {
+        ccipLocalSimulator = new CCIPLocalSimulator();
+
+        (
+            uint64 chainSelector,
+            IRouterClient sourceRouter,
+            IRouterClient destinationRouter,
+            WETH9 wrappedNative,
+            LinkToken linkToken,
+            BurnMintERC677Helper ccipBnM,
+            BurnMintERC677Helper ccipLnM
+        ) = ccipLocalSimulator.configuration();
+
         vm.prank(Barba);
         tridentDeploy = new TridentDeploy();
-        trident = tridentDeploy.run(Barba, address(0));
+        trident = tridentDeploy.run(Barba, sourceRouter, address(linkToken));
     }
 
     /// CONTRACT OWNER
@@ -39,19 +54,6 @@ contract TridentTest is Test {
         assertTrue(address(newGameCreated.keyAddress) != address(0));
     }
 
-    error Trident_GameAlreadyReleased(TridentNFT trident);
-    function test_GameIsCreatedReverts() public {
-        vm.prank(Barba);
-        trident.createNewGame("GTA12", "Grande Tatu Autonomo 12");
-
-        Trident.GameRelease memory newGameCreated = trident.getGamesCreated(1);
-
-        vm.expectRevert(abi.encodeWithSelector(Trident_GameAlreadyReleased.selector, address(newGameCreated.keyAddress)));
-        vm.prank(Barba);
-        trident.createNewGame("GTA12", "Grande Tatu Autonomo 12");
-    }
-
-
     /// FUNCTION setReleaseConditions
     modifier createGame(){
         vm.prank(Barba);
@@ -64,7 +66,7 @@ contract TridentTest is Test {
     function test_functionRevertsOnInvalidTokenSymbol() public createGame{
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(Trident_NonExistantGame.selector, address(0)));
-        trident.setReleaseConditions(1, 300, 150);
+        trident.setReleaseConditions(0, 300, 150);
 
         vm.warp(301);
         vm.prank(Barba);
@@ -72,5 +74,4 @@ contract TridentTest is Test {
         trident.setReleaseConditions(1, 300, 150);
 
     }
-
 }

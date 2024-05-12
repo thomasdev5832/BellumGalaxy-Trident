@@ -43,7 +43,7 @@ contract TridentFunctions is FunctionsClient, Ownable{
         "throw Error('Request failed');"
         "}"
         "const { data } = apiResponse;"
-        "return Functions.encodeString(data.name);";
+        "return Functions.encodeUint(data.score);";
 
 
     mapping(bytes32 requestId => FunctionsResponse) private s_responses;

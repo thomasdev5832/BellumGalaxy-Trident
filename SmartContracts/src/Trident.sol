@@ -6,8 +6,10 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { ILogAutomation, Log } from "@chainlink/contracts/src/v0.8/automation/interfaces/ILogAutomation.sol";
+import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
+import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 
 import {TridentNFT} from "./TridentNFT.sol";
 import {TridentFunctions} from "./TridentFunctions.sol";
@@ -23,6 +25,10 @@ error Trident_ZeroOneOption(uint256 isAllowed);
 error Trident_InvalidSouceChain(uint64 sourceChainSelector);
 ///@notice emitted when owner input an invalid sender address
 error Trident_InvalidSender(address sender);
+///@notice emitted when owner input an invalid chainId
+error Trident_InvalidChainId(uint64 destinationChainId);
+///@notice emitted when owner input an address(0) as param
+error Trident_InvalidReceiver(address receiver);
 ///@notice emitted when a contract is initialized with an address(0) param
 error Trident_InvalidAddress(address owner, TridentFunctions functions);
 ///@notice emitted when publisher tries to deploy duplicate game
@@ -49,6 +55,8 @@ error Trident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime);
 error Trident_SourceChainNotAllowed(uint64 sourceChainSelector);
 ///@notice emitted when ccip receives a message from a not allowed sender
 error Trident_SenderNotAllowed(address sender);
+///@notice emitted when the contract doesn't have enough balance
+error Trident_NotEnoughLinkBalance(uint256 currentBalance, uint256 calculatedFees);
 
 /**
     *@author Barba - Bellum Galaxy Hackathon Division
@@ -57,7 +65,7 @@ error Trident_SenderNotAllowed(address sender);
     *@dev do not use in production
     *contact www.bellumgalaxy.com - https://linktr.ee/bellumgalaxy
 */
-contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
+contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     using SafeERC20 for ERC20;
     
     ////////////////////
@@ -89,7 +97,6 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     struct CCIPInfos{
         bytes32 lastReceivedMessageId;
         uint64 sourceChainSelector;
-        string lastReceivedText;
         address lastReceivedTokenAddress;
         uint256 lastReceivedAmount;
     }
@@ -103,14 +110,19 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     uint256 private constant ONE = 1;
     ///@notice magic number removal
     uint256 private constant DECIMALS = 10**18;
+
+
     ///@notice functions constract instance
     TridentFunctions private immutable i_functions;
+    ///@notice link token contract address
+    LinkTokenInterface private immutable i_link;
 
     ///////////////////////
     /// STATE VARIABLES ///
     ///////////////////////
     uint256 private s_gameIdCounter;
     uint256 private s_ccipCounter;
+    IRouterClient private s_router;
 
     ///@notice Mapping to keep track of allowed stablecoins. ~ 0 = not allowed | 1 = allowed
     mapping(ERC20 tokenAddress => uint256 allowed) private s_tokenAllowed;
@@ -128,18 +140,24 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     mapping(uint64 chainID=> uint256 allowed) private s_allowlistedSourceChains;
     ///@notice Mapping to keep track of allowlisted senders. ~ 0 = not allowed | 1 = allowed
     mapping(address sender => uint256 allowed) private s_allowlistedSenders;
+    ///@notice Mapping to keep track of allowlist cross-chain receivers ~ 0 = not allowed | 1 = allowed
+    mapping(uint64 chainId => address receiver) private s_crossChainReceivers;
 
     //////////////
     /// EVENTS ///
     //////////////
-    ///@notice event emitted when a token is updated or added
-    event Trident_AllowedTokensUpdated(string tokenName, string tokenSymbol, ERC20 tokenAddress, uint256 isAllowed);
     ///@notice event emitted when a forwarded is updated or added
     event Trident_NewRelayerAllowed(address relayerAddress, uint256 isAllowed);
     ///@notice event emitted when a source chain is updated
     event Trident_SourceChainUpdated(uint64 sourceChainSelector, uint256 allowed);
     ///@notice event emitted when a sender is updated
     event Trident_AllowedSenderUpdated(address sender, uint256 allowed);
+    ///@notice event emitted when a token is updated or added
+    event Trident_AllowedTokensUpdated(string tokenName, string tokenSymbol, ERC20 tokenAddress, uint256 isAllowed);
+    ///@notice event emitted when a Cross-chain receiver is created
+    event Trident_CrossChainReceiverUpdated(uint64 destinationChainId, address receiver);
+    ///@notice emitted when a CCIP router is added to the protocol
+    event Trident_CCIPRouterUpdated(IRouterClient previousRouter, IRouterClient router);
     ///@notice event emitted when a new game nft is created
     event Trident_NewGameCreated(uint256 gameId, string tokenSymbol, string gameName, TridentNFT trident);
     ///@notice event emitted when infos about a new game is released
@@ -147,9 +165,11 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     ///@notice event emitted when a new copy is sold.
     event Trident_NewGameSold(uint256 gameId, string gameName, address payer, uint256 date, address gameReceiver);
     ///@notice event emitted when a Cross-chain transaction occur
-    event Trident_CrossChainBuyingPerformed(uint256 gameId, uint256 transactionTime, uint256 price);
+    event Trident_DataBaseUpdated(address from, address receiver, uint256 nftId);
     ///@notice event emitted when a CCIP message is received
-    event TridentCCReceiver_MessageReceived(bytes32 messageId, uint64 sourceChainSelector, address sender, string text);
+    event Trident_MessageReceived(bytes32 messageId, uint64 sourceChainSelector, address sender, string text);
+    ///@notice event emitted when a CCIP message is sent
+    event Trident_MessageSent(bytes32 messageId, uint64 destinationChainSelector, address receiver, bytes permission, address feeToken, uint256 fees);
 
     ///////////////
     ///MODIFIERS///
@@ -170,9 +190,10 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     /////////////////
     ///CONSTRUCTOR///
     /////////////////
-    constructor(address _owner, TridentFunctions _functionsAddress, address _router) CCIPReceiver(_router) Ownable(_owner){
+    constructor(address _owner, TridentFunctions _functionsAddress, IRouterClient _router, LinkTokenInterface _link) CCIPReceiver(address(_router)) Ownable(_owner){
         if(_owner == address(0) || address(_functionsAddress) == address(0)) revert Trident_InvalidAddress(_owner, _functionsAddress);
         i_functions = _functionsAddress;
+        i_link = _link;
     }
 
     ////////////////////////////////////
@@ -239,6 +260,24 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
         emit Trident_AllowedTokensUpdated(_tokenAddress.name(), _tokenAddress.symbol(), _tokenAddress, _isAllowed);
     }
 
+    //@Test
+    function manageCrossChainReceiver(uint64 _destinationChainId, address _receiver) external onlyOwner{
+        if(_destinationChainId < ONE) revert Trident_InvalidChainId(_destinationChainId);
+        if(_receiver == address(0)) revert Trident_InvalidReceiver(_receiver);
+
+        s_crossChainReceivers[_destinationChainId] = _receiver;
+
+        emit Trident_CrossChainReceiverUpdated(_destinationChainId, _receiver);
+    }
+
+    //@Test
+    function manageCCIPRouter(IRouterClient _router) external onlyOwner{
+        IRouterClient previousRouter = s_router;
+        s_router = _router;
+
+        emit Trident_CCIPRouterUpdated(previousRouter, _router);
+    }
+
     /**
         *@notice Function for Publisher to create a new game NFT
         *@param _gameSymbol game's identifier
@@ -253,10 +292,12 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
         s_gamesCreated[++s_gameIdCounter] = GameRelease({
             gameSymbol:_gameSymbol,
             gameName: _gameName,
-            keyAddress: new TridentNFT(_gameName, _gameSymbol, address(this))
+            keyAddress: TridentNFT(address(0))
         });
 
         emit Trident_NewGameCreated(s_gameIdCounter, _gameSymbol, _gameName, s_gamesCreated[s_gameIdCounter].keyAddress);
+
+        s_gamesCreated[s_gameIdCounter].keyAddress = new TridentNFT(_gameName, _gameSymbol, address(this));
     }
 
     /**
@@ -284,7 +325,15 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
         emit Trident_ReleaseConditionsSet(_gameId, _startingDate, _price);
     }
 
+    function dispatchCrossChainInfo(uint256 _gameId, uint64 _destinationChainId) external payable onlyOwner returns(bytes32 messageId){
 
+        GameInfos memory info = s_gamesInfo[_gameId];
+
+        //Hackathon Purpouses
+        bytes memory permission = abi.encode(_gameId, info.sellingDate, info.price);
+
+        messageId = sendMessage(_destinationChainId, permission);
+    }
 
     //////////////////////////
     /// EXTERNAL FUNCTIONS ///
@@ -312,38 +361,34 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
     }
 
     //https://docs.chain.link/chainlink-automation/guides/log-trigger
-    //@Test
     function checkLog(Log calldata log, bytes memory) external view returns (bool upkeepNeeded, bytes memory performData){
-        if(s_allowedKeeperRelayers[msg.sender] != ONE) revert Trident_InvalidCaller(msg.sender); //@Test
-        if(s_allowlistedSenders[log.source] != ONE) revert Trident_InvalidLogEmissor(log.source); //@Test
+        if(s_allowedKeeperRelayers[msg.sender] != ONE) revert Trident_InvalidCaller(msg.sender);
+        if(s_allowlistedSenders[log.source] != ONE) revert Trident_InvalidLogEmissor(log.source);
 
-        uint256 gameId = uint256(log.topics[1]);
-        address buyer = address(uint160(uint256(log.topics[2])));
-        uint256 transactionTime = uint256(log.topics[3]);
-        address gameReceiver = address(uint160(uint256(log.topics[4])));
+        // emit Transfer(from, to, tokenId);
+        address from = address(uint160(uint256(log.topics[1])));
+        address receiver = address(uint160(uint256(log.topics[2])));
+        uint256 nftId = uint256(log.topics[3]);
 
-        //emit CrossChainTrident_NewGameSold(_gameId, _buyer, block.timestamp, _gameReceiver, _value);
-        performData = abi.encode(gameId, buyer, transactionTime, gameReceiver);
-        upkeepNeeded = true;//@Test
+        performData = abi.encode(from, receiver, nftId);
+        upkeepNeeded = true;
     }
 
     //perform precisa escrever os dados recebidos do evento em um storage.
     //https://docs.chain.link/chainlink-automation/reference/automation-interfaces#ilogautomation
-    function performUpkeep(bytes calldata performData) external {//@Test
+    function performUpkeep(bytes calldata performData) external {
         if(s_allowedKeeperRelayers[msg.sender] != ONE) revert Trident_InvalidCaller(msg.sender);
 
-        uint256 gameId;
-        address buyer;
-        uint256 transactionTime;
-        address gameReceiver;
-        uint256 price;
+        address from;
+        address receiver;
+        uint256 nftId;
 
-        (gameId, buyer, transactionTime, gameReceiver, price) = abi.decode(performData, (uint256, address, uint256, address, uint256));//@Test
+        (from, receiver, nftId) = abi.decode(performData, (address, address, uint256));
 
-        emit Trident_CrossChainBuyingPerformed(gameId, transactionTime, price);//@Test
+        emit Trident_DataBaseUpdated(from, receiver, nftId);
 
-        // i_functions.sendRequest(); //@AJUSTE Quais infos mando para o banco? Wallet Address / NFT Game Address / 
-        s_gamesCreated[gameId].keyAddress.safeMint(gameReceiver, "");//@Test
+        //@AJUSTE Quais infos mando para o banco? Wallet Address / NFT Game Address / 
+        // i_functions.sendRequest(from, receiver, nftId);
     }
 
     //////////////
@@ -354,12 +399,27 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
         s_ccipMessages[s_ccipCounter] = CCIPInfos({//@Test
             lastReceivedMessageId: any2EvmMessage.messageId,
             sourceChainSelector: any2EvmMessage.sourceChainSelector,
-            lastReceivedText: abi.decode(any2EvmMessage.data, (string)),
             lastReceivedTokenAddress: any2EvmMessage.destTokenAmounts[0].token,
             lastReceivedAmount: any2EvmMessage.destTokenAmounts[0].amount
         });
 
-        emit TridentCCReceiver_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)),  abi.decode(any2EvmMessage.data, (string)));//@Test
+        (uint256 gameId, uint256 buyingTime, uint256 price, address gameReceiver) = abi.decode(any2EvmMessage.data, (uint256, uint256, uint256, address));
+
+        GameRelease memory release = s_gamesCreated[gameId];
+
+        ClientRecord memory newGame = ClientRecord({
+            gameName: release.gameName,
+            game: release.keyAddress,
+            buyingDate: buyingTime,
+            paidValue: price
+        });
+
+        s_clientRecords[gameReceiver].push(newGame);
+        ++s_gamesInfo[gameId].copiesSold;
+
+        emit Trident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)),  abi.decode(any2EvmMessage.data, (string)));//@Test
+
+        release.keyAddress.safeMint(gameReceiver, "");
     }
 
     /////////////
@@ -384,13 +444,47 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
         });
 
         s_clientRecords[_gameReceiver].push(newGame);
+        ++s_gamesInfo[_gameId].copiesSold;
 
         emit Trident_NewGameSold(_gameId, gameNft.gameName, _buyer, _buyingDate, _gameReceiver);
 
         //INTERACTIONS
-        // i_functions.sendRequest(); //@AJUSTE Quais infos mando para o banco? Wallet Address / NFT Game Address / 
         gameNft.keyAddress.safeMint(_gameReceiver, "");
         _chosenToken.safeTransferFrom(_buyer, address(this), _value);
+    }
+
+    /**
+        * @notice Sends data to receiver on the destination chain.
+        * @dev Assumes your contract has sufficient LINK.
+        * @param _destinationChainId The destination chain to receive the message
+        * @param _permission The bytes32 permission to be sent.
+        * @return messageId The ID of the message that was sent.
+    */
+    function sendMessage(uint64 _destinationChainId, bytes memory _permission) private onlyOwner returns (bytes32 messageId) {
+
+        address crossChainReceiver = s_crossChainReceivers[_destinationChainId];
+
+        Client.EVM2AnyMessage memory evm2AnyMessage = Client.EVM2AnyMessage({
+            receiver: abi.encode(crossChainReceiver),
+            data: abi.encode(_permission),
+            tokenAmounts: new Client.EVMTokenAmount[](0),
+            extraArgs: Client._argsToBytes(
+                Client.EVMExtraArgsV1({gasLimit: 350_000})
+            ),
+            feeToken: address(i_link)
+        });
+
+        uint256 fees = s_router.getFee(_destinationChainId, evm2AnyMessage);
+
+        emit Trident_MessageSent(messageId, _destinationChainId, crossChainReceiver, _permission, address(i_link), fees);
+
+        if (fees > i_link.balanceOf(address(this))) revert Trident_NotEnoughLinkBalance(i_link.balanceOf(address(this)), fees);
+
+        i_link.approve(address(s_router), fees);
+
+        messageId = s_router.ccipSend(_destinationChainId, evm2AnyMessage);
+
+        return messageId;
     }
 
     /////////////////
@@ -406,6 +500,16 @@ contract Trident is  Ownable, ILogAutomation, CCIPReceiver{
 
     function getAllowedSenders(address _sender) external view returns(uint256){
         return s_allowlistedSenders[_sender];
+    }
+
+    //@Test
+    function getAllowedCrossChainReceivers(uint64 _destinationChainId) external view returns(address){
+        return s_crossChainReceivers[_destinationChainId];
+    }
+
+    //@Test
+    function getCCIPRouter() external view returns(IRouterClient){
+        return s_router;
     }
 
     function getGamesCreated(uint256 _gameId) external view returns(GameRelease memory){

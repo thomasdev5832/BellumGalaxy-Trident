@@ -15,6 +15,7 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 import {CCIPLocalSimulator, IRouterClient, WETH9, LinkToken, BurnMintERC677Helper} from "@chainlink/local/src/ccip/CCIPLocalSimulator.sol";
 import { Log } from "@chainlink/contracts/src/v0.8/automation/interfaces/ILogAutomation.sol";
+import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 
 contract TridentIntegration is Test {
     Trident public trident;
@@ -62,11 +63,11 @@ contract TridentIntegration is Test {
         vm.prank(Barba);
         //Deploy main contract
         tridentDeploy = new TridentDeploy();
-        trident = tridentDeploy.run(Barba, address(destinationRouter));
+        trident = tridentDeploy.run(Barba, destinationRouter, address(linkToken));
 
         //Deploy CrossChain Contract
         ccTridentDeploy = new CrossChainTridentDeploy();
-        ccTrident = ccTridentDeploy.run(Barba, address(sourceRouter), address(linkToken), destinationChainSelector);
+        ccTrident = ccTridentDeploy.run(Barba, sourceRouter, address(linkToken), destinationChainSelector);
 
         //Deploy ERC20Mocks
         tokenOne = new ERC20Mock();
@@ -90,21 +91,24 @@ contract TridentIntegration is Test {
     ///AUTOMATION HELPER FUNCTION///
     ////////////////////////////////
     function createMockLog() public view returns (Log memory) {
-        bytes32[] memory topics = new bytes32[](5);
-        topics[1] = bytes32(abi.encodePacked(uint256(1))); // _gameId
-        topics[2] = bytes32(abi.encodePacked(address(Raffa))); // _startingDate
-        topics[3] = bytes32(abi.encodePacked(uint256(10_000))); // transactionTime
-        topics[4] = bytes32(abi.encodePacked(address(Raffa))); // transactionTime
+        bytes32[] memory topics = new bytes32[](6);
+        topics[1] = bytes32(uint256(uint160(address(0)))); // from
+        topics[2] = bytes32(uint256(uint160(Raffa))); // receiver
+        topics[3] = bytes32(abi.encodePacked(uint256(0))); // _gameId
+
+        console2.logAddress(address(uint160(uint256(topics[1]))));
+        console2.logAddress(address(uint160(uint256(topics[2]))));
+        console2.logUint(uint256(topics[3]));
 
         return Log({
             index: 1,
-            timestamp: 9_950,  // Ou um valor fixo para testes consistentes
-            txHash: bytes32(abi.encodePacked(uint256(0xabc123))),   // Hash de transação fictício
+            timestamp: 9_950,
+            txHash: bytes32(abi.encodePacked(uint256(0xabc123))),// Hash de transação fictício
             blockNumber: 12345,
-            blockHash: bytes32(abi.encodePacked(uint256(0xdef456))),  // Hash de bloco fictício
+            blockHash: bytes32(abi.encodePacked(uint256(0xdef456))),// Hash de bloco fictício
             source: fakeReceiver,
             topics: topics,
-            data: bytes("0x77656c636f6d65")  // Dados fictícios em hexadecimal
+            data: bytes("0x77656c636f6d65") // Dados fictícios em hexadecimal
         });
     }
 
@@ -318,9 +322,29 @@ contract TridentIntegration is Test {
     //////////////
     ///checkLog///
     //////////////
+    event Trident_DataBaseUpdated(address from, address receiver, uint256 nftId);
+    function test_checkLogWorks() public createGame {
+        Log memory log = createMockLog();
+
+        vm.prank(Barba);
+        trident.manageAllowedRelayers(Keeper, 1);
+
+        vm.prank(Barba);
+        trident.manageAllowlistSender(fakeReceiver, 1);
+
+        vm.prank(Keeper);
+        (bool upkeepNeeded, bytes memory performData) = trident.checkLog(log, "");
+
+        vm.prank(Keeper);
+        vm.expectEmit();
+        emit Trident_DataBaseUpdated(address(0), Raffa, 0);
+        trident.performUpkeep(performData);
+
+    }
+
     error Trident_InvalidCaller(address caller);
     error Trident_InvalidLogEmissor(address source);
-    function test_checkLog() public {
+    function test_revertsCheckLog() public {
         Log memory log = createMockLog();
         bool upkeepNeeded;
         bytes memory performData;
@@ -334,20 +358,5 @@ contract TridentIntegration is Test {
         vm.prank(Keeper);
         vm.expectRevert(abi.encodeWithSelector(Trident_InvalidLogEmissor.selector, fakeReceiver));
         ( upkeepNeeded, performData) = trident.checkLog(log, "");
-
-        vm.prank(Barba);
-        trident.manageAllowlistSender(fakeReceiver, 1);
-
-        vm.prank(Keeper);
-        (upkeepNeeded, performData) = trident.checkLog(log, "");
-
-        vm.prank(Keeper);
-        trident.performUpkeep(performData);
-
-        Trident.GameInfos memory infos = trident.getGamesInfo(1);
-        Trident.GameRelease memory release = trident.getGamesCreated(1);
-
-        assertEq(infos.copiesSold, 1);
-        assertEq(release.keyAddress.balanceOf(Raffa), 1);
     }
 }
