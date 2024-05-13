@@ -51,7 +51,7 @@ contract TridentFunctions is FunctionsClient, Ownable{
     ///////////////
     ///CONSTANTS///
     ///////////////
-    uint32 private constant GAS_LIMIT = 300000;
+    uint32 private constant GAS_LIMIT = 300_000;
     uint256 private constant ONE = 1;
 
     ////////////////

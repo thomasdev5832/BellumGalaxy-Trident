@@ -195,13 +195,13 @@ contract CrossChainTrident is Ownable{
     */
     function buyGame(uint256 _gameId, ERC20 _chosenToken, address _gameReceiver) external {
         //CHECKS
-        if(s_tokenAllowed[_chosenToken] != ONE) revert CrossChainTrident_TokenNotAllowed(_chosenToken);
+        if(s_tokenAllowed[_chosenToken] != ONE) revert CrossChainTrident_TokenNotAllowed(_chosenToken);//@Test
         
         GameInfos memory game = s_gamesInfo[_gameId];
 
-        if(block.timestamp < game.startingDate) revert CrossChainTrident_GameNotAvailableYet(block.timestamp, game.startingDate);
+        if(block.timestamp < game.startingDate) revert CrossChainTrident_GameNotAvailableYet(block.timestamp, game.startingDate);//@Test
 
-        if(_chosenToken.balanceOf(msg.sender) < game.price ) revert CrossChainTrident_NotEnoughBalance(game.price);
+        if(_chosenToken.balanceOf(msg.sender) < game.price ) revert CrossChainTrident_NotEnoughBalance(game.price);//@Test
 
         address buyer = msg.sender;
 
@@ -244,7 +244,7 @@ contract CrossChainTrident is Ownable{
 
         emit CrossChainTrident_UserMessageSent(messageId, i_destinationChainSelector, s_mainContractAddress, _text, address(i_linkToken), fees);
 
-        if (fees > i_linkToken.balanceOf(address(this))) revert CrossChainTrident_NotEnoughLinkBalance(i_linkToken.balanceOf(address(this)), fees);
+        if (fees > i_linkToken.balanceOf(address(this))) revert CrossChainTrident_NotEnoughLinkBalance(i_linkToken.balanceOf(address(this)), fees);//@Test
 
         i_linkToken.approve(address(i_router), fees);
 

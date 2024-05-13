@@ -178,7 +178,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     /// @param _sourceChainSelector The selector of the destination chain.
     /// @param _sender The address of the sender.
     modifier onlyAllowlisted(uint64 _sourceChainSelector, address _sender) {
-        if (s_allowlistedSourceChains[_sourceChainSelector] != 1)
+        if (s_allowlistedSourceChains[_sourceChainSelector] != 1)//@Test
             revert Trident_SourceChainNotAllowed(_sourceChainSelector);
         if (s_allowlistedSenders[_sender]  != 1 ) revert Trident_SenderNotAllowed(_sender);
         _;
@@ -260,7 +260,6 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         emit Trident_AllowedTokensUpdated(_tokenAddress.name(), _tokenAddress.symbol(), _tokenAddress, _isAllowed);
     }
 
-    //@Test
     function manageCrossChainReceiver(uint64 _destinationChainId, address _receiver) external onlyOwner{
         if(_destinationChainId < ONE) revert Trident_InvalidChainId(_destinationChainId);
         if(_receiver == address(0)) revert Trident_InvalidReceiver(_receiver);
@@ -270,7 +269,6 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         emit Trident_CrossChainReceiverUpdated(_destinationChainId, _receiver);
     }
 
-    //@Test
     function manageCCIPRouter(IRouterClient _router) external onlyOwner{
         IRouterClient previousRouter = s_router;
         s_router = _router;
@@ -309,9 +307,9 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     function setReleaseConditions(uint256 _gameId, uint256 _startingDate, uint256 _price) external onlyOwner {
         GameRelease memory release = s_gamesCreated[_gameId];
         //CHECKS
-        if(address(release.keyAddress) == address(0)) revert Trident_NonExistantGame(address(0));//@Test
+        if(address(release.keyAddress) == address(0)) revert Trident_NonExistantGame(address(0));
         
-        if(_startingDate < block.timestamp) revert Trident_SetAValidSellingPeriod(_startingDate, block.timestamp);//@Test
+        if(_startingDate < block.timestamp) revert Trident_SetAValidSellingPeriod(_startingDate, block.timestamp);
         
         if(_price < ONE) revert Trident_InvalidGamePrice(_price);
 
@@ -325,8 +323,8 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         emit Trident_ReleaseConditionsSet(_gameId, _startingDate, _price);
     }
 
-    function dispatchCrossChainInfo(uint256 _gameId, uint64 _destinationChainId) external payable onlyOwner returns(bytes32 messageId){
-
+    function dispatchCrossChainInfo(uint256 _gameId, uint64 _destinationChainId) external payable onlyOwner returns(bytes32 messageId){//@Test
+        
         GameInfos memory info = s_gamesInfo[_gameId];
 
         //Hackathon Purpouses
@@ -459,7 +457,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         * @param _destinationChainId The destination chain to receive the message
         * @param _permission The bytes32 permission to be sent.
         * @return messageId The ID of the message that was sent.
-    */
+    *///@Test
     function sendMessage(uint64 _destinationChainId, bytes memory _permission) private onlyOwner returns (bytes32 messageId) {
 
         address crossChainReceiver = s_crossChainReceivers[_destinationChainId];
@@ -502,12 +500,10 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         return s_allowlistedSenders[_sender];
     }
 
-    //@Test
     function getAllowedCrossChainReceivers(uint64 _destinationChainId) external view returns(address){
         return s_crossChainReceivers[_destinationChainId];
     }
 
-    //@Test
     function getCCIPRouter() external view returns(IRouterClient){
         return s_router;
     }
@@ -517,11 +513,11 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     }
 
     function getGamesInfo(uint256 _gameId) external view returns(GameInfos memory){
-        return s_gamesInfo[_gameId];//@Test
+        return s_gamesInfo[_gameId];
     }
 
     function getClientRecords(address _client) external view returns(ClientRecord[] memory){
-        return s_clientRecords[_client];//@Test
+        return s_clientRecords[_client];
     }
 
     function getAllowedTokens(ERC20 _tokenAddress) external view returns(uint256){

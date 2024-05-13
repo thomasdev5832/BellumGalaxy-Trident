@@ -27,6 +27,7 @@ contract TridentIntegration is Test {
     ERC20Mock tokenTwo;
     ERC20Mock tokenThree;
     
+    IRouterClient router;
     uint64 destinationChainSelector;
 
     address Barba = makeAddr("Barba");
@@ -35,6 +36,7 @@ contract TridentIntegration is Test {
     address Raffa = makeAddr("Raffa");
     address Keeper = makeAddr("Keeper");
     address fakeReceiver = makeAddr("fakeReceiver");
+    address Exploiter = makeAddr("Exploiter");
 
     uint256 constant SELLING_DATE = 300;
     uint256 constant GAME_PRICE = 150;
@@ -59,6 +61,7 @@ contract TridentIntegration is Test {
 
         //turn the variable global
         destinationChainSelector = chainSelector;
+        router = sourceRouter;
 
         vm.prank(Barba);
         //Deploy main contract
@@ -214,6 +217,46 @@ contract TridentIntegration is Test {
         trident.manageAllowedTokens(tokenOne, 2);
     }
 
+    //////////////////////////////
+    ///manageCrossChainReceiver///
+    //////////////////////////////
+    event Trident_CrossChainReceiverUpdated(uint64 destinationChainId, address receiver);
+    function test_manageCrossChainReceiver() public {
+        vm.prank(Barba);
+        vm.expectEmit();
+        emit Trident_CrossChainReceiverUpdated(destinationChainSelector, address(ccTrident));
+        trident.manageCrossChainReceiver(destinationChainSelector, address(ccTrident));
+
+        assertEq(trident.getAllowedCrossChainReceivers(destinationChainSelector), address(ccTrident));
+    }
+
+    error Trident_InvalidChainId(uint64 destinationChainId);
+    error Trident_InvalidReceiver(address receiver);
+    function test_revertManageCrossChainReceiver() public {
+        vm.prank(Barba);
+        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidChainId.selector, 0));
+        trident.manageCrossChainReceiver(0, address(ccTrident));
+
+        vm.prank(Barba);
+        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidReceiver.selector, address(0)));
+        trident.manageCrossChainReceiver(destinationChainSelector, address(0));
+    }
+
+    //////////////////////
+    ///manageCCIPRouter///
+    //////////////////////
+    event Trident_CCIPRouterUpdated(IRouterClient previousRouter, IRouterClient router);
+    function test_manageCCIPRouter() public {
+        vm.prank(Barba);
+        vm.expectEmit();
+        emit Trident_CCIPRouterUpdated(IRouterClient(address(0)), router);
+        trident.manageCCIPRouter(router);
+
+        IRouterClient _router = trident.getCCIPRouter();
+
+        assertEq(address(_router), address(router));
+    }
+
     ///////////////////
     ///createNewGame///
     ///////////////////
@@ -297,6 +340,11 @@ contract TridentIntegration is Test {
         assertEq(TridentNFT(game.keyAddress).balanceOf(Gabriel), 1);
 
         assertEq(tokenOne.balanceOf(Gabriel), USER_INITIAL_BALANCE - GAME_PRICE*10**18);
+
+        Trident.ClientRecord[] memory client = trident.getClientRecords(Gabriel);
+        assertEq(client[0].gameName, "Grande Tatu Autonomo 12");
+        assertTrue(address(client[0].game) != address(0));
+        assertEq(client[0].paidValue, GAME_PRICE * 10**18);
     }
 
     error Trident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime);
@@ -334,6 +382,10 @@ contract TridentIntegration is Test {
 
         vm.prank(Keeper);
         (bool upkeepNeeded, bytes memory performData) = trident.checkLog(log, "");
+
+        vm.prank(Exploiter);
+        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidCaller.selector, Exploiter));
+        trident.performUpkeep(performData);
 
         vm.prank(Keeper);
         vm.expectEmit();
