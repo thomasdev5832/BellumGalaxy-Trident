@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using trident_launcher_pooling;
 using tridentCore;
-using trident_launcher_pooling;
 
 namespace trident_launcher
 {
@@ -16,6 +15,10 @@ namespace trident_launcher
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            PoolingVerifyGames tridentPooling = new PoolingVerifyGames();
+            Thread pooling = new Thread(() => tridentPooling.initPooling());
+            pooling.Start();
+            Button buttonStop = new Button();
         }
 
         private void TextBox_TextChanged(object sender, EventArgs e)
@@ -31,13 +34,9 @@ namespace trident_launcher
 
         private void initTrident_Click(object sender, EventArgs e)
         {
-           
-            PoolingVerifyGames tridentPooling = new PoolingVerifyGames();
-            Thread pooling = new Thread(() => tridentPooling.initPooling());
-            pooling.Start();
-            Button buttonStop = new Button();
 
-           
+
+
         }
 
         private void menuGroup_Enter(object sender, EventArgs e)

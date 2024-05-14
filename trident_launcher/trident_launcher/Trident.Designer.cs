@@ -6,6 +6,7 @@ namespace trident_launcher
 {
     partial class Trident
     {
+
         /// <summary>
         ///  Required designer variable.
         /// </summary>
@@ -33,14 +34,12 @@ namespace trident_launcher
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Trident));
             contextMenuStrip1 = new ContextMenuStrip(components);
-            menuGroup = new GroupBox();
             LogonButton = new Button();
-            initTrident = new Button();
-            instructionText = new TextBox();
             textSaudationTrident = new TextBox();
-            walletBox = new TextBox();
-            menuGroup.SuspendLayout();
+            pictureBox1 = new PictureBox();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
             // contextMenuStrip1
@@ -48,70 +47,41 @@ namespace trident_launcher
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // menuGroup
-            // 
-            menuGroup.AutoSize = true;
-            menuGroup.Controls.Add(LogonButton);
-            menuGroup.Controls.Add(initTrident);
-            menuGroup.Controls.Add(instructionText);
-            menuGroup.Controls.Add(textSaudationTrident);
-            menuGroup.Location = new Point(1, -1);
-            menuGroup.Name = "menuGroup";
-            menuGroup.Size = new Size(995, 550);
-            menuGroup.TabIndex = 7;
-            menuGroup.TabStop = false;
-            menuGroup.Enter += menuGroup_Enter;
-            // 
             // LogonButton
             // 
-            LogonButton.Location = new Point(915, 13);
+            LogonButton.BackColor = Color.FromArgb(240, 0, 0, 0);
+            LogonButton.FlatStyle = FlatStyle.Flat;
+            LogonButton.ForeColor = SystemColors.Control;
+            LogonButton.Location = new Point(916, 12);
             LogonButton.Name = "LogonButton";
-            LogonButton.Size = new Size(66, 30);
+            LogonButton.Size = new Size(66, 34);
             LogonButton.TabIndex = 9;
             LogonButton.Text = "Sair";
-            LogonButton.UseVisualStyleBackColor = true;
+            LogonButton.UseVisualStyleBackColor = false;
             LogonButton.Click += LogonButton_Click;
-            // 
-            // initTrident
-            // 
-            initTrident.Location = new Point(415, 206);
-            initTrident.Name = "initTrident";
-            initTrident.Size = new Size(167, 73);
-            initTrident.TabIndex = 7;
-            initTrident.Text = "Iniciar";
-            initTrident.UseVisualStyleBackColor = true;
-            initTrident.Click += initTrident_Click;
-            // 
-            // instructionText
-            // 
-            instructionText.BorderStyle = BorderStyle.None;
-            instructionText.Location = new Point(360, 142);
-            instructionText.Multiline = true;
-            instructionText.Name = "instructionText";
-            instructionText.Size = new Size(277, 31);
-            instructionText.TabIndex = 8;
-            instructionText.Text = "Para iniciar o App clique em Iniciar!";
-            instructionText.TextAlign = HorizontalAlignment.Center;
-            instructionText.TextChanged += textBox2_TextChanged_1;
             // 
             // textSaudationTrident
             // 
+            textSaudationTrident.BackColor = SystemColors.WindowText;
             textSaudationTrident.BorderStyle = BorderStyle.None;
             textSaudationTrident.Font = new Font("Segoe UI", 12F);
-            textSaudationTrident.Location = new Point(0, 0);
+            textSaudationTrident.ForeColor = SystemColors.MenuBar;
+            textSaudationTrident.Location = new Point(12, 12);
             textSaudationTrident.Name = "textSaudationTrident";
+            textSaudationTrident.ReadOnly = true;
             textSaudationTrident.Size = new Size(160, 22);
             textSaudationTrident.TabIndex = 7;
             textSaudationTrident.Text = "Bem vindo a Trident !";
             textSaudationTrident.TextChanged += textBox1_TextChanged;
             // 
-            // walletBox
+            // pictureBox1
             // 
-            walletBox.BorderStyle = BorderStyle.None;
-            walletBox.Location = new Point(823, 12);
-            walletBox.Name = "walletBox";
-            walletBox.Size = new Size(131, 16);
-            walletBox.TabIndex = 9;
+            pictureBox1.BackgroundImage = (Image)resources.GetObject("pictureBox1.BackgroundImage");
+            pictureBox1.Location = new Point(1, -2);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(992, 542);
+            pictureBox1.TabIndex = 10;
+            pictureBox1.TabStop = false;
             // 
             // Trident
             // 
@@ -120,14 +90,14 @@ namespace trident_launcher
             BackColor = SystemColors.ButtonHighlight;
             BackgroundImageLayout = ImageLayout.Zoom;
             ClientSize = new Size(994, 540);
-            Controls.Add(menuGroup);
-            Controls.Add(walletBox);
+            Controls.Add(LogonButton);
+            Controls.Add(textSaudationTrident);
+            Controls.Add(pictureBox1);
             Name = "Trident";
             Text = "Trident";
             TransparencyKey = Color.Gray;
             Load += Form1_Load;
-            menuGroup.ResumeLayout(false);
-            menuGroup.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -142,11 +112,8 @@ namespace trident_launcher
         private Button login;
         private ContextMenuStrip contextMenuStrip1;
         private GroupBox loginBox;
-        private Button initTrident;
-        private GroupBox menuGroup;
         private TextBox textSaudationTrident;
-        private TextBox instructionText;
-        private TextBox walletBox;
         private Button LogonButton;
+        private PictureBox pictureBox1;
     }
 }

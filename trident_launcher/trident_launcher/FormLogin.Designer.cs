@@ -42,6 +42,7 @@ namespace trident_launcher
             // login
             // 
             login.BackColor = Color.FromArgb(240, 0, 0, 0);
+            login.Cursor = Cursors.Arrow;
             login.FlatAppearance.BorderSize = 0;
             login.FlatStyle = FlatStyle.Flat;
             login.ForeColor = Color.White;
@@ -50,6 +51,7 @@ namespace trident_launcher
             login.Size = new Size(289, 61);
             login.TabIndex = 4;
             login.Text = "Logar";
+            login.UseMnemonic = false;
             login.UseVisualStyleBackColor = false;
             login.Click += login_Click;
             // 
