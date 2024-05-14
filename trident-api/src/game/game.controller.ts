@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
-import { GameService } from './game.service'; // Importe o serviço do jogo
+import { GameService } from './game.service'; 
 
 @Controller('game')
 export class GameController {
-  constructor(private readonly gameService: GameService) {} // Injete o serviço do jogo no controller
-
+  constructor(private readonly gameService: GameService) {} 
+  
   @Get()
   getAllGames() {
     return this.gameService.getAllGames();
