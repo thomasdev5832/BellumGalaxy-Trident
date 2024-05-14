@@ -56,7 +56,7 @@ contract TridentIntegration is Test {
 
         //Deploy CrossChain Contract
         ccTridentDeploy = new CrossChainTridentDeploy();
-        ccTrident = ccTridentDeploy.run(Barba, address(sourceRouter), address(linkToken), destinationChainSelector);
+        ccTrident = ccTridentDeploy.run(Barba, sourceRouter, address(linkToken), destinationChainSelector);
 
         //Deploy ERC20Mocks
         tokenOne = new ERC20Mock();
@@ -69,7 +69,6 @@ contract TridentIntegration is Test {
         vm.startPrank(Barba);
         ccTrident.manageMainContract(fakeReceiver);
         ccTrident.manageAllowedTokens(tokenOne, 1);
-        ccTrident.manageAllowedForwarders(Keeper, 1);
         vm.stopPrank();
         _;
     }
@@ -121,32 +120,6 @@ contract TridentIntegration is Test {
         ccTrident.manageAllowedTokens(tokenOne, 2);
     }
 
-    /////////////////////////////
-    ///manageAllowedForwarders///
-    /////////////////////////////
-    function test_addAllowedForwarder() public {
-        vm.prank(Barba);
-        ccTrident.manageAllowedForwarders(Keeper, 1);
-
-        uint256 isAllowed = ccTrident.getAllowedForwarder(Keeper);
-
-        assertEq(isAllowed, ALLOWED);
-    }
-
-    error CrossChainTrident_InvalidKeeperAddress(address forwarderAddress);
-    function test_revertAllowedForwarder() public {
-        address fakeForwarder = address(0);
-        uint256 invalidNumber = 2;
-
-        vm.prank(Barba);
-        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_InvalidKeeperAddress.selector, fakeForwarder));
-        ccTrident.manageAllowedForwarders(fakeForwarder, 1);
-
-        vm.prank(Barba);
-        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_ZeroOneOption.selector, invalidNumber));
-        ccTrident.manageAllowedForwarders(Keeper, invalidNumber);
-    }
-
     ////////////////////////
     ///manageMainContract///
     ////////////////////////
@@ -171,15 +144,8 @@ contract TridentIntegration is Test {
     /////////////
     ///buyGame///
     /////////////
+    //@Ajuste
     function test_ifAUserCanByAGameCC() public createGame{
-        Log memory log = createMockLog();
-        
-        vm.prank(Keeper);
-        (bool needed, bytes memory performData) = ccTrident.checkLog(log, "");
-
-        vm.prank(Keeper);
-        ccTrident.performUpkeep(performData);
-
         tokenOne.mint(Gabriel, USER_INITIAL_BALANCE);
 
         vm.prank(Gabriel);
@@ -194,15 +160,8 @@ contract TridentIntegration is Test {
     error CrossChainTrident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime);
     error CrossChainTrident_TokenNotAllowed(ERC20 choosenToken);
     error CrossChainTrident_NotEnoughBalance(uint256 gamePrice);
+    //@Ajuste
     function testIfbuyGameRevertsCC() public createGame{
-        Log memory log = createMockLog();
-        
-        vm.prank(Keeper);
-        (bool needed, bytes memory performData) = ccTrident.checkLog(log, "");
-
-        vm.prank(Keeper);
-        ccTrident.performUpkeep(performData);
-
         vm.prank(Gabriel);
         vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_GameNotAvailableYet.selector, block.timestamp, SELLING_DATE));
         ccTrident.buyGame(1, tokenOne, Gabriel);
