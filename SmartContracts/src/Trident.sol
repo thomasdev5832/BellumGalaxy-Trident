@@ -174,27 +174,29 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     ///////////////
     ///MODIFIERS///
     ///////////////
-    /// @dev Modifier that checks if the chain with the given sourceChainSelector is allowlisted and if the sender is allowlisted.
-    /// @param _sourceChainSelector The selector of the destination chain.
-    /// @param _sender The address of the sender.
+    /**
+     * @dev Modifier that checks if the chain with the given sourceChainSelector is allowlisted and if the sender is allowlisted.
+     * @param _sourceChainSelector The selector of the destination chain.
+     * @param _sender The address of the sender.
+     */
     modifier onlyAllowlisted(uint64 _sourceChainSelector, address _sender) {
-        if (s_allowlistedSourceChains[_sourceChainSelector] != 1)//@Test
+        if (s_allowlistedSourceChains[_sourceChainSelector] != 1)
             revert Trident_SourceChainNotAllowed(_sourceChainSelector);
         if (s_allowlistedSenders[_sender]  != 1 ) revert Trident_SenderNotAllowed(_sender);
         _;
     }
 
-    /////////////////////////////////////////////////////////////////
-    /////////////////////////// FUNCTIONS ///////////////////////////
-    /////////////////////////////////////////////////////////////////
     /////////////////
     ///CONSTRUCTOR///
     /////////////////
     constructor(address _owner, TridentFunctions _functionsAddress, IRouterClient _router, LinkTokenInterface _link) CCIPReceiver(address(_router)) Ownable(_owner){
-        if(_owner == address(0) || address(_functionsAddress) == address(0)) revert Trident_InvalidAddress(_owner, _functionsAddress);
         i_functions = _functionsAddress;
         i_link = _link;
     }
+
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////// FUNCTIONS ///////////////////////////
+    /////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////
     /// EXTERNAL onlyOwner FUNCTIONS ///
@@ -323,14 +325,14 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         emit Trident_ReleaseConditionsSet(_gameId, _startingDate, _price);
     }
 
-    function dispatchCrossChainInfo(uint256 _gameId, uint64 _destinationChainId) external payable onlyOwner returns(bytes32 messageId){//@Test
+    function dispatchCrossChainInfo(uint256 _gameId, uint64 _destinationChainId) external payable onlyOwner returns(bytes32 messageId){
         
         GameInfos memory info = s_gamesInfo[_gameId];
 
         //Hackathon Purpouses
         bytes memory permission = abi.encode(_gameId, info.sellingDate, info.price);
 
-        messageId = sendMessage(_destinationChainId, permission);
+        messageId = _sendMessage(_destinationChainId, permission);
     }
 
     //////////////////////////
@@ -457,14 +459,14 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         * @param _destinationChainId The destination chain to receive the message
         * @param _permission The bytes32 permission to be sent.
         * @return messageId The ID of the message that was sent.
-    *///@Test
-    function sendMessage(uint64 _destinationChainId, bytes memory _permission) private onlyOwner returns (bytes32 messageId) {
+    */
+    function _sendMessage(uint64 _destinationChainId, bytes memory _permission) private onlyOwner returns(bytes32 messageId) {
 
         address crossChainReceiver = s_crossChainReceivers[_destinationChainId];
 
         Client.EVM2AnyMessage memory evm2AnyMessage = Client.EVM2AnyMessage({
             receiver: abi.encode(crossChainReceiver),
-            data: abi.encode(_permission),
+            data: _permission,
             tokenAmounts: new Client.EVMTokenAmount[](0),
             extraArgs: Client._argsToBytes(
                 Client.EVMExtraArgsV1({gasLimit: 350_000})

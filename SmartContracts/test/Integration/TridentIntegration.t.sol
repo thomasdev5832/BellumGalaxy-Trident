@@ -40,7 +40,6 @@ contract TridentIntegration is Test {
 
     uint256 constant SELLING_DATE = 300;
     uint256 constant GAME_PRICE = 150;
-    uint256 constant TIME_LOCK = 180 days;
     uint256 constant LINK_BALANCE = 10 ether;
 
     uint256 constant USER_INITIAL_BALANCE = 1000 *10**18;

@@ -7,10 +7,8 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
+import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
 import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
-
-import {TridentNFT} from "./TridentNFT.sol";
-import {TridentFunctions} from "./TridentFunctions.sol";
 
 //////////////
 /// ERRORS ///
@@ -27,10 +25,14 @@ error CrossChainTrident_NonExistantGame(address invalidAddress);
 error CrossChainTrident_InvalidTokenAddress(ERC20 tokenAddress);
 ///@notice emitter when a not allowed caller calls checkUpkeep function
 error CrossChainTrident_InvalidCaller(address caller);
+///@notice emitted when owner input an invalid sender address
+error CrossChainTrident_InvalidSender(address sender);
 ///@notice emitted when the contract receives an log from a invalid sender
 error CrossChainTrident_InvalidLogEmissor(address senderAddress);
 ///@notice emitted when publisher input a wrong value
 error CrossChainTrident_ZeroOneOption(uint256 isAllowed);
+///@notice emitted when owner input an invalid sourceChain id
+error CrossChainTrident_InvalidSouceChain(uint64 sourceChainSelector);
 ///@notice emitted when a user tries to use a token that is not allowed
 error CrossChainTrident_TokenNotAllowed(ERC20 choosenToken);
 ///@notice emitted when the selling period is not open yet
@@ -39,6 +41,10 @@ error CrossChainTrident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime
 error CrossChainTrident_NotEnoughBalance(uint256 gamePrice);
 ///@notice emitted when the contract doesn't have enough balance
 error CrossChainTrident_NotEnoughLinkBalance(uint256 currentBalance, uint256 calculatedFees);
+///@notice emitted when ccip receives a message from a chain that is not allowed
+error CrossChainTrident_SourceChainNotAllowed(uint64 sourceChainSelector);
+///@notice emitted when ccip receives a message from a not allowed sender
+error CrossChainTrident_SenderNotAllowed(address sender);
 
 ///////////////
 ///INTERFACE///
@@ -51,7 +57,7 @@ error CrossChainTrident_NotEnoughLinkBalance(uint256 currentBalance, uint256 cal
     *@dev do not use in production
     *contact www.bellumgalaxy.com - https://linktr.ee/bellumgalaxy
 */
-contract CrossChainTrident is Ownable{
+contract CrossChainTrident is CCIPReceiver, Ownable{
     using SafeERC20 for ERC20;
     
     ////////////////////
@@ -81,6 +87,10 @@ contract CrossChainTrident is Ownable{
     mapping(ERC20 tokenAddress => uint256 allowed) private s_tokenAllowed;
     ///@notice Mapping to keep track of game's info
     mapping(uint256 gameId => GameInfos) private s_gamesInfo;
+    ///@notice Mapping to keep track of allowlisted source chains. ~ 0 = not allowed | 1 = allowed
+    mapping(uint64 chainID=> uint256 allowed) private s_allowlistedSourceChains;
+    ///@notice Mapping to keep track of allowlisted senders. ~ 0 = not allowed | 1 = allowed
+    mapping(address sender => uint256 allowed) private s_allowlistedSenders;
 
     //////////////
     /// EVENTS ///
@@ -89,6 +99,8 @@ contract CrossChainTrident is Ownable{
     event CrossChainTrident_AllowedTokensUpdated(string tokenName, string tokenSymbol, ERC20 tokenAddress, uint256 isAllowed);
     ///@notice event emitted when a forwarded is updated or added
     event CrossChainTrident_NewForwarderAllowd(address forwarderAddress);
+    ///@notice event emitted when a source chain is updated
+    event CrossChainTrident_SourceChainUpdated(uint64 sourceChainSelector, uint256 allowed);
     ///@notice event emitted when a CCIP receiver is updated
     event CrossChainTrident_ReceiverUpdated(address previousReceiver, address newReceiver);
     ///@notice event emitted when a automation sender is updated
@@ -103,9 +115,21 @@ contract CrossChainTrident is Ownable{
     event CrossChainTrident_MessageSent(bytes32 messageId, uint64 destinationChainSelector, address receiver, address token, uint256 tokenAmount, address feeToken, uint256 fees);
     ///@notice event emitted when a game is buyed and a CCIP message is sent
     event CrossChainTrident_UserMessageSent(bytes32 messageId, uint64 destinationChainSelector, address receiver, bytes text, address feeToken, uint256 fees);
-
-    constructor(address _owner, IRouterClient _router, LinkTokenInterface _link, uint64 _destinationChainSelector) Ownable(_owner){
-        if(_owner == address(0) || address(_router) == address(0) || address(_link) == address(0) || _destinationChainSelector < ONE) revert CrossChainTrident_InvalidDeployParameters(_owner, _router, _link, _destinationChainSelector);
+    ///@notice event emitted when a CCIP message is received
+    event CrossChainTrident_MessageReceived(bytes32 messageId, uint64 sourceChainSelector, address sender, string text);
+    
+    /**
+     * @dev Modifier that checks if the chain with the given sourceChainSelector is allowlisted and if the sender is allowlisted.
+     * @param _sourceChainSelector The selector of the destination chain.
+     * @param _sender The address of the sender.
+     */
+    modifier onlyAllowlisted(uint64 _sourceChainSelector, address _sender) {
+        if (s_allowlistedSourceChains[_sourceChainSelector] != 1)
+            revert CrossChainTrident_SourceChainNotAllowed(_sourceChainSelector);
+        if (s_allowlistedSenders[_sender]  != 1 ) revert CrossChainTrident_SenderNotAllowed(_sender);
+        _;
+    }
+    constructor(address _owner, IRouterClient _router, LinkTokenInterface _link, uint64 _destinationChainSelector) CCIPReceiver(address(_router)) Ownable(_owner){
         i_router = _router;
         i_linkToken = _link;
         i_destinationChainSelector = _destinationChainSelector;
@@ -141,6 +165,30 @@ contract CrossChainTrident is Ownable{
         s_mainContractAddress = _mainContract;
 
         emit CrossChainTrident_ReceiverUpdated(previousReceiver, _mainContract);
+    }
+
+    function manageAllowlistSourceChain(uint64 _sourceChainSelector, uint256 _isAllowed) external payable onlyOwner {
+        if(_sourceChainSelector < ONE) revert CrossChainTrident_InvalidSouceChain(_sourceChainSelector);
+        if(_isAllowed > ONE) revert CrossChainTrident_ZeroOneOption(_isAllowed);
+
+        s_allowlistedSourceChains[_sourceChainSelector] = _isAllowed;
+
+        emit CrossChainTrident_SourceChainUpdated(_sourceChainSelector, _isAllowed);
+    }
+
+    /**
+        * @dev Updates the allowlist status of a sender for transactions.
+        * @notice This function can only be called by the owner.
+        * @param _sender The address of the sender to be updated.
+        * @param _isAllowed The allowlist status to be set for the sender.
+    */
+    function manageAllowlistSender(address _sender, uint256 _isAllowed) external payable onlyOwner {
+        if(_sender == address(0)) revert CrossChainTrident_InvalidSender(_sender);
+        if(_isAllowed > ONE) revert CrossChainTrident_ZeroOneOption(_isAllowed);
+
+        s_allowlistedSenders[_sender] = _isAllowed;
+
+        emit CrossChainTrident_AllowedSenderUpdated(_sender, _isAllowed);
     }
 
     /**
@@ -251,6 +299,21 @@ contract CrossChainTrident is Ownable{
         messageId = i_router.ccipSend(i_destinationChainSelector, evm2AnyMessage);
     }
 
+    //////////////
+    ///INTERNAL///
+    //////////////
+    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override onlyAllowlisted(any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address))){
+
+        (uint256 gameId, uint256 sellingDate, uint256 price) = abi.decode(any2EvmMessage.data, (uint256, uint256, uint256));
+
+        s_gamesInfo[gameId] = GameInfos({
+            startingDate: sellingDate,
+            price: price
+        });
+        
+        emit CrossChainTrident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)),  abi.decode(any2EvmMessage.data, (string)));
+    }
+
     /////////////////
     ///VIEW & PURE///
     /////////////////
@@ -260,5 +323,9 @@ contract CrossChainTrident is Ownable{
 
     function getAllowedTokens(ERC20 _tokenAddress) external view returns(uint256){
         return s_tokenAllowed[_tokenAddress];
+    }
+
+    function getGamesInfo(uint256 _gameId) external view returns(GameInfos memory info){
+        info = s_gamesInfo[_gameId];
     }
 }
