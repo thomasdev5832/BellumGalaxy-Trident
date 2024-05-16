@@ -1,34 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { GameDto } from './game.dto';
 
 @Injectable()
 export class GameService {
-  private games = [
-    { id: '1', title: 'The Witcher 3: Wild Hunt', price: 49.99 },
-    { id: '2', title: 'Red Dead Redemption 2', price: 59.99 },
-    { id: '3', title: 'The Legend of Zelda: Breath of the Wild', price: 59.99 },
-    { id: '4', title: 'Cyberpunk 2077', price: 69.99 }
-  ];
+
+  private games: GameDto[] = [];
 
   getAllGames() {
     return this.games;
   }
 
-  getGameById(id: string) {
+  getGameById(id: string): GameDto {
     return this.games.find(game => game.id === id); 
   }
 
-  createGame(gameData: any) {
-    const newGame = { ...gameData, id: (this.games.length + 1).toString() }; 
-    return newGame; 
+  createGame(gameData: GameDto) {
+    this.games.push(gameData);
+    return gameData; 
   }
 
-  updateGame(id: string, gameData: any) {
+  updateGame(id: string, gameData: GameDto) {
     const index = this.games.findIndex(game => game.id === id); 
     if (index === -1) {
       return null;
     }
-    this.games[index] = { ...this.games[index], ...gameData };
-    return this.games[index];
+    if(index >= 0) {
+      this.games[index] = { ...this.games[index], ...gameData };
+      return this.games[index];
+    }
+    throw new HttpException(`Game with id ${gameData.id} not found`, HttpStatus.BAD_REQUEST);
   }
 
   deleteGame(id: string) {
@@ -36,8 +36,11 @@ export class GameService {
     if (index === -1) {
       return null;
     }
-    const deletedGame = this.games[index];
-    this.games.splice(index, 1); 
-    return deletedGame; 
+    if(index >= 0){
+      const deletedGame = this.games[index];
+      this.games.splice(index, 1); 
+      return deletedGame; 
+    }
+    throw new HttpException(`Game with id ${id} not found`, HttpStatus.BAD_REQUEST);
   }
 }
