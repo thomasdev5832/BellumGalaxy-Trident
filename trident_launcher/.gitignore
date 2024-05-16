@@ -3,10 +3,11 @@ trident_launcher/bin/
 trident_launcher/.vs/
 trident_launcher/obj/
 trident_launcher/obj/*
+trident_launcher/Properties/
 
 # Arquivos de configuração do Visual Studio
 /.vs/
-.vs/
+.vs/*
 
 *.vscode/
 
