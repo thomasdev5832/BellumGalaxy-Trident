@@ -42,7 +42,7 @@ namespace trident_launcher
             // login
             // 
             login.BackColor = Color.FromArgb(240, 0, 0, 0);
-            login.Cursor = Cursors.Arrow;
+            login.Cursor = Cursors.Hand;
             login.FlatAppearance.BorderSize = 0;
             login.FlatStyle = FlatStyle.Flat;
             login.ForeColor = Color.White;
@@ -97,6 +97,7 @@ namespace trident_launcher
             // loginBox
             // 
             loginBox.BackColor = Color.FromArgb(190, 0, 0, 0);
+            loginBox.Cursor = Cursors.Arrow;
             loginBox.Location = new Point(292, 153);
             loginBox.Name = "loginBox";
             loginBox.Size = new Size(456, 353);
