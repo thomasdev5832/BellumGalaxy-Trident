@@ -1,9 +1,24 @@
 ﻿using System.Diagnostics;
-
 using tridentCore;
+using System.Drawing;
+
 
 namespace trident_launcher
 {
+    public class TransparentTextBox : TextBox
+    {
+        public TransparentTextBox()
+        {
+            // Tornando a caixa de texto transparente
+            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
+            BackColor = Color.Transparent;
+        }
+
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            // Não faz nada no fundo para que ele permaneça transparente
+        }
+    }
     partial class Trident
     {
 
@@ -34,13 +49,47 @@ namespace trident_launcher
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            TextBox textBox1;
+            TextBox textBox2;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Trident));
             contextMenuStrip1 = new ContextMenuStrip(components);
             LogonButton = new Button();
-            textSaudationTrident = new TextBox();
             pictureBox1 = new PictureBox();
+            contextMenuStrip2 = new ContextMenuStrip(components);
+            toolStripTextBox1 = new ToolStripTextBox();
+            menuBox = new PictureBox();
+            textBox1 = new TextBox();
+            textBox2 = new TextBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            contextMenuStrip2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)menuBox).BeginInit();
             SuspendLayout();
+            // 
+            // textBox1
+            // 
+            textBox1.BackColor = Color.Black;
+            textBox1.BorderStyle = BorderStyle.None;
+            textBox1.Font = new Font("Cascadia Code", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox1.ForeColor = SystemColors.Window;
+            textBox1.Location = new Point(365, 101);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(268, 25);
+            textBox1.TabIndex = 12;
+            textBox1.Text = "Bem vindo a Trident";
+            textBox1.TextAlign = HorizontalAlignment.Center;
+            // 
+            // textBox2
+            // 
+            textBox2.BackColor = Color.Black;
+            textBox2.BorderStyle = BorderStyle.None;
+            textBox2.Font = new Font("Cascadia Code", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox2.ForeColor = SystemColors.Window;
+            textBox2.Location = new Point(365, 252);
+            textBox2.Name = "textBox2";
+            textBox2.Size = new Size(268, 25);
+            textBox2.TabIndex = 13;
+            textBox2.Text = "Aplicação iniciada !";
+            textBox2.TextAlign = HorizontalAlignment.Center;
             // 
             // contextMenuStrip1
             // 
@@ -60,28 +109,35 @@ namespace trident_launcher
             LogonButton.UseVisualStyleBackColor = false;
             LogonButton.Click += LogonButton_Click;
             // 
-            // textSaudationTrident
-            // 
-            textSaudationTrident.BackColor = SystemColors.WindowText;
-            textSaudationTrident.BorderStyle = BorderStyle.None;
-            textSaudationTrident.Font = new Font("Segoe UI", 12F);
-            textSaudationTrident.ForeColor = SystemColors.MenuBar;
-            textSaudationTrident.Location = new Point(12, 12);
-            textSaudationTrident.Name = "textSaudationTrident";
-            textSaudationTrident.ReadOnly = true;
-            textSaudationTrident.Size = new Size(160, 22);
-            textSaudationTrident.TabIndex = 7;
-            textSaudationTrident.Text = "Bem vindo a Trident !";
-            textSaudationTrident.TextChanged += textBox1_TextChanged;
-            // 
             // pictureBox1
             // 
             pictureBox1.BackgroundImage = (Image)resources.GetObject("pictureBox1.BackgroundImage");
-            pictureBox1.Location = new Point(1, -2);
+            pictureBox1.Location = new Point(0, -1);
             pictureBox1.Name = "pictureBox1";
+            pictureBox1.Padding = new Padding(3);
             pictureBox1.Size = new Size(992, 542);
             pictureBox1.TabIndex = 10;
             pictureBox1.TabStop = false;
+            // 
+            // contextMenuStrip2
+            // 
+            contextMenuStrip2.Items.AddRange(new ToolStripItem[] { toolStripTextBox1 });
+            contextMenuStrip2.Name = "contextMenuStrip2";
+            contextMenuStrip2.Size = new Size(161, 29);
+            // 
+            // toolStripTextBox1
+            // 
+            toolStripTextBox1.Name = "toolStripTextBox1";
+            toolStripTextBox1.Size = new Size(100, 23);
+            // 
+            // menuBox
+            // 
+            menuBox.BackColor = Color.Black;
+            menuBox.Location = new Point(24, 52);
+            menuBox.Name = "menuBox";
+            menuBox.Size = new Size(932, 480);
+            menuBox.TabIndex = 11;
+            menuBox.TabStop = false;
             // 
             // Trident
             // 
@@ -90,14 +146,19 @@ namespace trident_launcher
             BackColor = SystemColors.ButtonHighlight;
             BackgroundImageLayout = ImageLayout.Zoom;
             ClientSize = new Size(994, 540);
+            Controls.Add(textBox2);
+            Controls.Add(textBox1);
+            Controls.Add(menuBox);
             Controls.Add(LogonButton);
-            Controls.Add(textSaudationTrident);
             Controls.Add(pictureBox1);
             Name = "Trident";
             Text = "Trident";
             TransparencyKey = Color.Gray;
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            contextMenuStrip2.ResumeLayout(false);
+            contextMenuStrip2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)menuBox).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -111,9 +172,11 @@ namespace trident_launcher
         private Label password;
         private Button login;
         private ContextMenuStrip contextMenuStrip1;
-        private GroupBox loginBox;
-        private TextBox textSaudationTrident;
         private Button LogonButton;
         private PictureBox pictureBox1;
+        private ContextMenuStrip contextMenuStrip2;
+        private ToolStripTextBox toolStripTextBox1;
+        private PictureBox menuBox;
+        private TextBox textBox1;
     }
 }
