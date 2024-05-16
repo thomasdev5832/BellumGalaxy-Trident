@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { GameDto } from './game.dto';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class GameService {
@@ -15,6 +16,7 @@ export class GameService {
   }
 
   createGame(gameData: GameDto) {
+    
     this.games.push(gameData);
     return gameData; 
   }
