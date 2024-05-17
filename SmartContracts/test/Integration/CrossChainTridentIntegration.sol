@@ -140,40 +140,4 @@ contract TridentIntegration is Test {
         vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_InvalidAddress.selector, fakeContract));
         ccTrident.manageMainContract(fakeContract);
     }
-
-    /////////////
-    ///buyGame///
-    /////////////
-    //@Ajuste
-    function test_ifAUserCanByAGameCC() public createGame{
-        tokenOne.mint(Gabriel, USER_INITIAL_BALANCE);
-
-        vm.prank(Gabriel);
-        tokenOne.approve(address(ccTrident), USER_INITIAL_BALANCE);
-
-        vm.warp(10_001);
-
-        vm.prank(Gabriel);
-        ccTrident.buyGame(1, tokenOne, Gabriel);
-    }
-
-    error CrossChainTrident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime);
-    error CrossChainTrident_TokenNotAllowed(ERC20 choosenToken);
-    error CrossChainTrident_NotEnoughBalance(uint256 gamePrice);
-    //@Ajuste
-    function testIfbuyGameRevertsCC() public createGame{
-        vm.prank(Gabriel);
-        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_GameNotAvailableYet.selector, block.timestamp, SELLING_DATE));
-        ccTrident.buyGame(1, tokenOne, Gabriel);
-
-        vm.warp(SELLING_DATE +1);
-
-        vm.prank(Gabriel);
-        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_TokenNotAllowed.selector, tokenTwo));
-        ccTrident.buyGame(1, tokenTwo, Gabriel);
-
-        vm.prank(Gabriel);
-        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_NotEnoughBalance.selector, GAME_PRICE *10**18));
-        ccTrident.buyGame(1, tokenOne, Gabriel);
-    }
 }

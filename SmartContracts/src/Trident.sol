@@ -167,7 +167,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     ///@notice event emitted when a Cross-chain transaction occur
     event Trident_DataBaseUpdated(address from, address receiver, uint256 nftId);
     ///@notice event emitted when a CCIP message is received
-    event Trident_MessageReceived(bytes32 messageId, uint64 sourceChainSelector, address sender, string text);
+    event Trident_MessageReceived(bytes32 messageId, uint64 sourceChainSelector, address sender);
     ///@notice event emitted when a CCIP message is sent
     event Trident_MessageSent(bytes32 messageId, uint64 destinationChainSelector, address receiver, bytes permission, address feeToken, uint256 fees);
 
@@ -288,8 +288,10 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         // CHECKS
         if(bytes(_gameSymbol).length < ONE || bytes(_gameName).length < ONE) revert Trident_InvalidGameSymbolOrName(_gameSymbol, _gameName);
 
+        s_gameIdCounter = s_gameIdCounter + 1;
+
         //EFFECTS
-        s_gamesCreated[++s_gameIdCounter] = GameRelease({
+        s_gamesCreated[s_gameIdCounter] = GameRelease({
             gameSymbol:_gameSymbol,
             gameName: _gameName,
             keyAddress: TridentNFT(address(0))
@@ -396,7 +398,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     //////////////
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override onlyAllowlisted(any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address))){//@Test
 
-        s_ccipMessages[s_ccipCounter] = CCIPInfos({//@Test
+        s_ccipMessages[s_ccipCounter] = CCIPInfos({
             lastReceivedMessageId: any2EvmMessage.messageId,
             sourceChainSelector: any2EvmMessage.sourceChainSelector,
             lastReceivedTokenAddress: any2EvmMessage.destTokenAmounts[0].token,
@@ -417,7 +419,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         s_clientRecords[gameReceiver].push(newGame);
         ++s_gamesInfo[gameId].copiesSold;
 
-        emit Trident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)),  abi.decode(any2EvmMessage.data, (string)));//@Test
+        emit Trident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)));
 
         release.keyAddress.safeMint(gameReceiver, "");
     }

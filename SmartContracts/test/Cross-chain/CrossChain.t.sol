@@ -30,6 +30,7 @@ contract CrossChain is Test {
     uint64 destinationChainSelector;
 
     ERC20Mock tokenOne;
+    ERC20Mock tokenTwo;
 
     address Barba = makeAddr("Barba");
     address Cayo = makeAddr("Cayo");
@@ -73,7 +74,8 @@ contract CrossChain is Test {
         ccTrident = ccTridentDeploy.run(Barba, sourceRouter, address(linkToken), destinationChainSelector);
 
         //Deploy ERC20Mocks
-        tokenOne = new ERC20Mock();      
+        tokenOne = new ERC20Mock();
+        tokenTwo = new ERC20Mock();
 
         //mint some faucet link 
         ccipLocalSimulator.requestLinkFromFaucet(address(trident), LINK_BALANCE);
@@ -101,7 +103,7 @@ contract CrossChain is Test {
     }
 
     ///dispatchCrossChainInfo///
-    function test_dispatchCrossChainInfo() public {
+    function test_dispatchCrossChainInfo() public createGame{
         vm.prank(Barba);
         bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
         assertTrue(messageId != 0);
@@ -109,9 +111,49 @@ contract CrossChain is Test {
         CrossChainTrident.GameInfos memory info = ccTrident.getGamesInfo(1);
 
         assertEq(info.startingDate, SELLING_DATE);
-        assertEq(info.price, GAME_PRICE);
+        assertEq(info.price, GAME_PRICE *10**18);
     }
 
+    /////////////
+    ///buyGame///
+    /////////////
+    //@Ajuste
+    function test_ifAUserCanByAGameCC() public createGame{
+        vm.prank(Barba);
+        bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
+
+        tokenOne.mint(Gabriel, USER_INITIAL_BALANCE);
+
+        vm.prank(Gabriel);
+        tokenOne.approve(address(ccTrident), USER_INITIAL_BALANCE);
+
+        vm.warp(10_001);
+
+        vm.prank(Gabriel);
+        ccTrident.buyGame(1, tokenOne, Gabriel);
+    }
+
+    error CrossChainTrident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime);
+    error CrossChainTrident_TokenNotAllowed(ERC20 choosenToken);
+    error CrossChainTrident_NotEnoughBalance(uint256 gamePrice);
+    function testIfbuyGameRevertsCC() public createGame{
+        vm.prank(Barba);
+        bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
+
+        vm.prank(Gabriel);
+        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_GameNotAvailableYet.selector, block.timestamp, SELLING_DATE));
+        ccTrident.buyGame(1, tokenOne, Gabriel);
+
+        vm.warp(SELLING_DATE +1);
+
+        vm.prank(Gabriel);
+        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_TokenNotAllowed.selector, tokenTwo));
+        ccTrident.buyGame(1, tokenTwo, Gabriel);
+
+        vm.prank(Gabriel);
+        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_NotEnoughBalance.selector, GAME_PRICE *10**18));
+        ccTrident.buyGame(1, tokenOne, Gabriel);
+    }
 
 
 
