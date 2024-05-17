@@ -1,12 +1,43 @@
-import { IsNumber, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsString, MaxLength, MinLength, IsUrl } from "class-validator";
 
 export class GameDto {
-  id: string;
+  @IsNumber()
+  gameId: number;
+
+  @IsNumber()
+  userId: number;
 
   @IsString()
-  @MinLength(5)
-  @MaxLength(256)
-  title: string;
+  @MinLength(1)
+  @MaxLength(255)
+  name: string;
 
-  price: number;
+  @IsDateString()
+  released: string;
+
+  @IsString()
+  @IsOptional()
+  timeLimit?: string;
+
+  @IsString()
+  @MinLength(1)
+  @MaxLength(255)
+  processName: string;
+
+  @IsString()
+  @MinLength(1)
+  @MaxLength(255)
+  developerCompany: string;
+
+  @IsString()
+  @IsOptional()
+  timePlayed?: string;
+
+  @IsBoolean()
+  isBlocked: boolean;
+
+  @IsUrl()
+  @IsOptional()
+  @MaxLength(255)
+  gameImageUrl?: string;
 }
