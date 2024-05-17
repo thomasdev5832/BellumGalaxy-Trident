@@ -16,10 +16,10 @@ export class GameService {
   }
 
   createGame(gameData: GameDto) {
-    
-    this.games.push(gameData);
-    return gameData; 
-  }
+    const newGame = { ...gameData, id: (this.games.length + 1).toString() };
+    this.games.push(newGame); 
+    return newGame;
+}
 
   updateGame(id: string, gameData: GameDto) {
     const index = this.games.findIndex(game => game.id === id); 
