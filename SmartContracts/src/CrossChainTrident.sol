@@ -29,8 +29,6 @@ error CrossChainTrident_InvalidCaller(address caller);
 error CrossChainTrident_InvalidSender(address sender);
 ///@notice emitted when the contract receives an log from a invalid sender
 error CrossChainTrident_InvalidLogEmissor(address senderAddress);
-///@notice emitted when publisher input a wrong value
-error CrossChainTrident_ZeroOneOption(uint256 isAllowed);
 ///@notice emitted when owner input an invalid sourceChain id
 error CrossChainTrident_InvalidSouceChain(uint64 sourceChainSelector);
 ///@notice emitted when a user tries to use a token that is not allowed
@@ -150,7 +148,6 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
     */
     function manageAllowedTokens(IERC20 _tokenAddress, uint256 _isAllowed) external payable onlyOwner {
         if(address(_tokenAddress) == address(0)) revert CrossChainTrident_InvalidTokenAddress(_tokenAddress);
-        if(_isAllowed > ONE) revert CrossChainTrident_ZeroOneOption(_isAllowed);
 
         s_tokenAllowed[_tokenAddress] = _isAllowed;
 
@@ -169,7 +166,6 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
 
     function manageAllowlistSourceChain(uint64 _sourceChainSelector, uint256 _isAllowed) external payable onlyOwner {
         if(_sourceChainSelector < ONE) revert CrossChainTrident_InvalidSouceChain(_sourceChainSelector);
-        if(_isAllowed > ONE) revert CrossChainTrident_ZeroOneOption(_isAllowed);
 
         s_allowlistedSourceChains[_sourceChainSelector] = _isAllowed;
 
@@ -184,7 +180,6 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
     */
     function manageAllowlistSender(address _sender, uint256 _isAllowed) external payable onlyOwner {
         if(_sender == address(0)) revert CrossChainTrident_InvalidSender(_sender);
-        if(_isAllowed > ONE) revert CrossChainTrident_ZeroOneOption(_isAllowed);
 
         s_allowlistedSenders[_sender] = _isAllowed;
 
@@ -200,7 +195,8 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
     */
     //@Test
     function sendAdminMessage(IERC20 _token, uint256 _amount) external payable onlyOwner returns (bytes32 messageId) {
-       messageId = _sendMessage("", _token, _amount);        
+        bytes memory data = abi.encode(0, block.timestamp, _amount *10**18, address(this));
+       messageId = _sendMessage(data, _token, _amount *10**18);
     }
 
     //////////////////////////
@@ -269,14 +265,16 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
 
         uint256 fees = i_router.getFee(i_destinationChainSelector, evm2AnyMessage);
 
-        emit CrossChainTrident_MessageSent(messageId, i_destinationChainSelector, s_mainContractAddress, _token, _amount, address(i_linkToken), fees);
 
         if (fees > i_linkToken.balanceOf(address(this))) revert CrossChainTrident_NotEnoughLinkBalance(i_linkToken.balanceOf(address(this)), fees);
 
         i_linkToken.approve(address(i_router), fees);
+        _token.approve(address(i_router), _amount);
 
         messageId = i_router.ccipSend(i_destinationChainSelector, evm2AnyMessage);
 
+        emit CrossChainTrident_MessageSent(messageId, i_destinationChainSelector, s_mainContractAddress, _token, _amount, address(i_linkToken), fees);
+        
         return messageId;
     }
 

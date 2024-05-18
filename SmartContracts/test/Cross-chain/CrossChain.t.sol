@@ -117,7 +117,6 @@ contract CrossChain is Test {
     /////////////
     ///buyGame///
     /////////////
-    //@Ajuste
     function test_ifAUserCanByAGameCC() public createGame{
         vm.prank(Barba);
         bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
@@ -131,6 +130,11 @@ contract CrossChain is Test {
 
         vm.prank(Gabriel);
         ccTrident.buyGame(1, tokenOne, Gabriel);
+
+        Trident.CCIPInfos memory ccip = trident.getLastReceivedMessageDetails(0);
+
+        assertTrue(ccip.lastReceivedMessageId != 0);
+
     }
 
     error CrossChainTrident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime);
@@ -155,7 +159,30 @@ contract CrossChain is Test {
         ccTrident.buyGame(1, tokenOne, Gabriel);
     }
 
+    ///sendAdminMessage///
+    function test_sendAdminMessage() public createGame{
+        vm.prank(Barba);
+        bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
 
+        tokenOne.mint(Gabriel, USER_INITIAL_BALANCE);
+
+        vm.prank(Gabriel);
+        tokenOne.approve(address(ccTrident), USER_INITIAL_BALANCE);
+
+        vm.warp(10_001);
+
+        vm.prank(Gabriel);
+        ccTrident.buyGame(1, tokenOne, Gabriel);
+
+        ///====================================================
+
+        vm.startPrank(Barba);
+        ccTrident.sendAdminMessage(tokenOne, GAME_PRICE);
+        vm.stopPrank();
+
+        assertEq(tokenOne.balanceOf(address(ccTrident)), 0);
+        assertEq(tokenOne.balanceOf(address(trident)), GAME_PRICE *10**18);
+    }
 
 
 

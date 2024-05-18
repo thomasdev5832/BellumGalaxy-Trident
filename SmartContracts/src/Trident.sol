@@ -19,8 +19,6 @@ import {TridentFunctions} from "./TridentFunctions.sol";
 //////////////
 ///@notice emitted when the keeper forwarder address is invalid
 error Trident_InvalidKeeperAddress(address forwarderAddress);
-///@notice emitted when publisher input a wrong value
-error Trident_ZeroOneOption(uint256 isAllowed);
 ///@notice emitted when owner input an invalid sourceChain id
 error Trident_InvalidSouceChain(uint64 sourceChainSelector);
 ///@notice emitted when owner input an invalid sender address
@@ -210,7 +208,6 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     */
     function manageAllowedRelayers(address _relayer, uint256 _isAllowed) external payable onlyOwner{
         if(_relayer == address(0)) revert Trident_InvalidKeeperAddress(_relayer);
-        if(_isAllowed > ONE) revert Trident_ZeroOneOption(_isAllowed);
 
         s_allowedKeeperRelayers[_relayer] = _isAllowed;
 
@@ -225,7 +222,6 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     */
     function manageAllowlistSourceChain(uint64 _sourceChainSelector, uint256 _isAllowed) external payable onlyOwner {
         if(_sourceChainSelector < ONE) revert Trident_InvalidSouceChain(_sourceChainSelector);
-        if(_isAllowed > ONE) revert Trident_ZeroOneOption(_isAllowed);
 
         s_allowlistedSourceChains[_sourceChainSelector] = _isAllowed;
 
@@ -240,7 +236,6 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     */
     function manageAllowlistSender(address _sender, uint256 _isAllowed) external payable onlyOwner {
         if(_sender == address(0)) revert Trident_InvalidSender(_sender);
-        if(_isAllowed > ONE) revert Trident_ZeroOneOption(_isAllowed);
 
         s_allowlistedSenders[_sender] = _isAllowed;
 
@@ -255,7 +250,6 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     */
     function manageAllowedTokens(ERC20 _tokenAddress, uint256 _isAllowed) external onlyOwner {
         if(address(_tokenAddress) == address(0)) revert Trident_InvalidTokenAddress(_tokenAddress);
-        if(_isAllowed > ONE) revert Trident_ZeroOneOption(_isAllowed);
 
         s_tokenAllowed[_tokenAddress] = _isAllowed;
 
@@ -396,7 +390,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     //////////////
     ///INTERNAL///
     //////////////
-    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override onlyAllowlisted(any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address))){//@Test
+    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override onlyAllowlisted(any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address))){
 
         s_ccipMessages[s_ccipCounter] = CCIPInfos({
             lastReceivedMessageId: any2EvmMessage.messageId,
@@ -405,23 +399,27 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
             lastReceivedAmount: any2EvmMessage.destTokenAmounts[0].amount
         });
 
+        s_ccipCounter = s_ccipCounter + 1;
+
         (uint256 gameId, uint256 buyingTime, uint256 price, address gameReceiver) = abi.decode(any2EvmMessage.data, (uint256, uint256, uint256, address));
 
-        GameRelease memory release = s_gamesCreated[gameId];
+        if(gameId != 0){
+            GameRelease memory release = s_gamesCreated[gameId];
 
-        ClientRecord memory newGame = ClientRecord({
-            gameName: release.gameName,
-            game: release.keyAddress,
-            buyingDate: buyingTime,
-            paidValue: price
-        });
+            ClientRecord memory newGame = ClientRecord({
+                gameName: release.gameName,
+                game: release.keyAddress,
+                buyingDate: buyingTime,
+                paidValue: price
+            });
 
-        s_clientRecords[gameReceiver].push(newGame);
-        ++s_gamesInfo[gameId].copiesSold;
+            s_clientRecords[gameReceiver].push(newGame);
+            ++s_gamesInfo[gameId].copiesSold;
 
-        emit Trident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)));
+            emit Trident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)));
 
-        release.keyAddress.safeMint(gameReceiver, "");
+            release.keyAddress.safeMint(gameReceiver, "");
+        }
     }
 
     /////////////

@@ -115,7 +115,7 @@ contract TridentIntegration is Test {
     }
 
     /////////////////////////////
-    ///manageAllowedForwarders///
+    ///manageAllowedRelayers///
     /////////////////////////////
     function test_manageAllowedRelayers() public {
         address relayerToTest = address(1);
@@ -127,23 +127,23 @@ contract TridentIntegration is Test {
         assertEq(allowed, 1);
     }
 
-    error Trident_InvalidKeeperAddress(address forwarderAddress);
+    error Trident_InvalidKeeperAddress(address relayersAddress);
+    error OwnableUnauthorizedAccount(address caller);
     function test_revertManageAllowedRelayers() public {
         address wrongRelayer = address(0);
         address relayerToTest = address(1);
 
-        vm.prank(Barba);
-        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidKeeperAddress.selector, wrongRelayer));
+        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
         trident.manageAllowedRelayers(wrongRelayer, 1);
 
         vm.prank(Barba);
-        vm.expectRevert(abi.encodeWithSelector(Trident_ZeroOneOption.selector, 45454));
-        trident.manageAllowedRelayers(relayerToTest, 45454);
+        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidKeeperAddress.selector, wrongRelayer));
+        trident.manageAllowedRelayers(wrongRelayer, 1);
     }
 
-    //////////////////////////
+    ////////////////////////////////
     ///manageAllowlistSourceChain///
-    //////////////////////////
+    ////////////////////////////////
     function test_manageAllowlistSourceChain() public {
         uint64 sourceChainToTest = 4546454664;
         vm.prank(Barba);
@@ -157,14 +157,13 @@ contract TridentIntegration is Test {
     error Trident_InvalidSouceChain(uint64 sourceChainSelector);
     function test_revertManageAllowlistSourceChain() public {
         uint64 fakeChain;
-        uint64 sourceChainToTest = 51516161651;
+
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(Trident_InvalidSouceChain.selector, fakeChain));
         trident.manageAllowlistSourceChain(fakeChain, 1);
 
-        vm.prank(Barba);
-        vm.expectRevert(abi.encodeWithSelector(Trident_ZeroOneOption.selector, 51616));
-        trident.manageAllowlistSourceChain(sourceChainToTest, 51616);
+        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
+        trident.manageAllowlistSourceChain(fakeChain, 1);
     }
 
     ///////////////////////////
@@ -182,20 +181,18 @@ contract TridentIntegration is Test {
     error Trident_InvalidSender(address sender);
     function test_revertManageAllowlistSender() public {
         address invalidSender = address(0);
-        address senderToTest = address(1);
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(Trident_InvalidSender.selector, invalidSender));
         trident.manageAllowlistSender(invalidSender, 1);
 
-        vm.prank(Barba);
-        vm.expectRevert(abi.encodeWithSelector(Trident_ZeroOneOption.selector, 1000));
-        trident.manageAllowlistSender(senderToTest, 1000);
+        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
+        trident.manageAllowlistSender(invalidSender, 1);
     }
 
     /////////////////////////
     ///manageAllowedTokens///
     /////////////////////////
-    function test_testIfCanAddANewToken() public {
+    function test_manageAllowedTokens() public {
         vm.prank(Barba);
         trident.manageAllowedTokens(tokenOne, 1);
 
@@ -205,15 +202,13 @@ contract TridentIntegration is Test {
     }
 
     error Trident_InvalidTokenAddress(ERC20 tokenAddress);
-    error Trident_ZeroOneOption(uint256 isAllowed);
-    function test_ifManageReverts() public {
+    function test_revertManageAllowedTokens() public {
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(Trident_InvalidTokenAddress.selector, ERC20(address(0))));
         trident.manageAllowedTokens(ERC20(address(0)), 1);
 
-        vm.prank(Barba);
-        vm.expectRevert(abi.encodeWithSelector(Trident_ZeroOneOption.selector, 2));
-        trident.manageAllowedTokens(tokenOne, 2);
+        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
+        trident.manageAllowedTokens(ERC20(address(0)), 1);
     }
 
     //////////////////////////////
@@ -239,6 +234,9 @@ contract TridentIntegration is Test {
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(Trident_InvalidReceiver.selector, address(0)));
         trident.manageCrossChainReceiver(destinationChainSelector, address(0));
+
+        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
+        trident.manageCrossChainReceiver(destinationChainSelector, address(0));
     }
 
     //////////////////////
@@ -256,11 +254,19 @@ contract TridentIntegration is Test {
         assertEq(address(_router), address(router));
     }
 
+    function test_revertManageCCIPRouter() public {
+        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
+        trident.manageCCIPRouter(router);
+    }
+
     ///////////////////
     ///createNewGame///
     ///////////////////
+    event Trident_NewGameCreated(uint256 s_gameIdCounter, string _gameSymbol, string _gameName, address  keyAddress);
     function test_createNewGame() public {
         vm.startPrank(Barba);
+        vm.expectEmit();
+        emit Trident_NewGameCreated(1, "GTA12", "Grande Tatu Autonomo 12", address(0));
         trident.createNewGame("GTA12", "Grande Tatu Autonomo 12");
 
         Trident.GameRelease memory game = trident.getGamesCreated(1);
@@ -272,14 +278,23 @@ contract TridentIntegration is Test {
 
     error Trident_InvalidGameSymbolOrName(string symbol, string name);
     function test_revertCreateNewGame() public {
-        vm.prank(Barba);
-        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidGameSymbolOrName.selector, "", ""));
+
+        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
         trident.createNewGame("", "");
+
+        vm.prank(Barba);
+        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidGameSymbolOrName.selector, "GTAXII", ""));
+        trident.createNewGame("GTAXII", "");
+
+        vm.prank(Barba);
+        vm.expectRevert(abi.encodeWithSelector(Trident_InvalidGameSymbolOrName.selector, "", "Grande Tatu Autonomo 12"));
+        trident.createNewGame("", "Grande Tatu Autonomo 12");
     }
 
     //////////////////////////
     ///setReleaseConditions///
     //////////////////////////
+    event Trident_ReleaseConditionsSet(uint256 gameId, uint256 startingTime, uint256 gamePrice);
     function test_setReleaseConditions() public {
         uint256 gamePrice = 30;
         
@@ -288,6 +303,8 @@ contract TridentIntegration is Test {
         
         vm.warp(300);
 
+        vm.expectEmit();
+        emit Trident_ReleaseConditionsSet(1, 301, gamePrice);
         trident.setReleaseConditions(1, 301, gamePrice);
         vm.stopPrank();
 
@@ -306,6 +323,9 @@ contract TridentIntegration is Test {
 
         vm.prank(Barba);
         trident.createNewGame("GTA12", "Grande Tatu Autonomo 12");
+
+        vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
+        trident.setReleaseConditions(100, 301, gamePrice);
         
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(Trident_NonExistantGame.selector, address(0)));
@@ -325,6 +345,7 @@ contract TridentIntegration is Test {
     /////////////
     ///buyGame///
     /////////////
+    event Trident_NewGameSold(uint256 gameId, string gameName, address payer, uint256 date, address gameReceiver);
     function test_buyAGame() public createGame{
         tokenOne.mint(Gabriel, USER_INITIAL_BALANCE);
         vm.prank(Gabriel);
@@ -333,14 +354,17 @@ contract TridentIntegration is Test {
         vm.warp(301);
 
         vm.prank(Gabriel);
+        vm.expectEmit();
+        emit Trident_NewGameSold(1, "Grande Tatu Autonomo 12", Gabriel, block.timestamp, Gabriel);
         trident.buyGame(1, tokenOne, Gabriel);
 
         Trident.GameRelease memory game = trident.getGamesCreated(1);
-        assertEq(TridentNFT(game.keyAddress).balanceOf(Gabriel), 1);
 
+        assertEq(TridentNFT(game.keyAddress).balanceOf(Gabriel), 1);
         assertEq(tokenOne.balanceOf(Gabriel), USER_INITIAL_BALANCE - GAME_PRICE*10**18);
 
         Trident.ClientRecord[] memory client = trident.getClientRecords(Gabriel);
+
         assertEq(client[0].gameName, "Grande Tatu Autonomo 12");
         assertTrue(address(client[0].game) != address(0));
         assertEq(client[0].paidValue, GAME_PRICE * 10**18);

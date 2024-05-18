@@ -73,31 +73,10 @@ contract TridentIntegration is Test {
         _;
     }
 
-    ////////////////////////////////
-    ///AUTOMATION HELPER FUNCTION///
-    ////////////////////////////////
-    function createMockLog() public view returns (Log memory) {
-        bytes32[] memory topics = new bytes32[](4);
-        topics[1] = bytes32(abi.encodePacked(uint256(1))); // _gameId
-        topics[2] = bytes32(abi.encodePacked(uint256(10000))); // _startingDate
-        topics[3] = bytes32(abi.encodePacked(uint256(30_000_000_000_000_000_000))); // _price
-
-        return Log({
-            index: 1,
-            timestamp: 9_950,  // Ou um valor fixo para testes consistentes
-            txHash: bytes32(abi.encodePacked(uint256(0xabc123))),   // Hash de transação fictício
-            blockNumber: 12345,
-            blockHash: bytes32(abi.encodePacked(uint256(0xdef456))),  // Hash de bloco fictício
-            source: fakeReceiver,
-            topics: topics,
-            data: bytes("0x77656c636f6d65")  // Dados fictícios em hexadecimal
-        });
-    }
-
     /////////////////////////
     ///manageAllowedTokens///
     /////////////////////////
-    function test_testIfCanAddANewToken() public {
+    function test_manageAllowedTokens() public {
         vm.prank(Barba);
         ccTrident.manageAllowedTokens(tokenOne, 1);
 
@@ -108,22 +87,16 @@ contract TridentIntegration is Test {
 
     error CrossChainTrident_InvalidTokenAddress(ERC20 tokenAddress);
     error CrossChainTrident_ZeroOneOption(uint256 isAllowed);
-    function test_ifManageReverts() public createGame{
+    function test_revertManageAllowedTokens() public createGame{
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_InvalidTokenAddress.selector, ERC20(address(0))));
         ccTrident.manageAllowedTokens(ERC20(address(0)), 1);
-
-        Log memory log = createMockLog();
-
-        vm.prank(Barba);
-        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_ZeroOneOption.selector, 2));
-        ccTrident.manageAllowedTokens(tokenOne, 2);
     }
 
     ////////////////////////
     ///manageMainContract///
     ////////////////////////
-    function test_manageCCIPReceiver() public {
+    function test_manageMainContract() public {
         vm.prank(Barba);
         ccTrident.manageMainContract(fakeReceiver);
 
@@ -133,11 +106,44 @@ contract TridentIntegration is Test {
     }
 
     error CrossChainTrident_InvalidAddress(address receiver);
-    function test_revertManageCCIPReceiver() public {
+    function test_revertManageMainContract() public {
         address fakeContract = address(0);
 
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_InvalidAddress.selector, fakeContract));
         ccTrident.manageMainContract(fakeContract);
+    }
+
+    ///manageAllowlistSourceChain///
+    function test_manageAllowlistSourceChain() public{
+        uint64 fakeChainId = 165161165161;
+
+        vm.prank(Barba);
+        ccTrident.manageAllowlistSourceChain(fakeChainId, 1);
+    }
+
+    error CrossChainTrident_InvalidSouceChain(uint64);
+    function test_revertManageAllowlistSourceChain() public {
+
+        vm.prank(Barba);
+        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_InvalidSouceChain.selector, 0));
+        ccTrident.manageAllowlistSourceChain(0, 1);
+    }
+
+    ///manageAllowlistSender///
+    event CrossChainTrident_AllowedSenderUpdated(address, uint256);
+    function test_manageAllowlistSender() public {
+        vm.prank(Barba);
+        vm.expectEmit();
+        emit CrossChainTrident_AllowedSenderUpdated(Raffa, 1);
+        ccTrident.manageAllowlistSender(Raffa, 1);
+    }
+
+    error CrossChainTrident_InvalidSender(address);
+    function test_revertManageAllowlistSender() public {
+        vm.prank(Barba);
+        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_InvalidSender.selector, address(0)));
+        ccTrident.manageAllowlistSender(address(0), 1);
+
     }
 }
