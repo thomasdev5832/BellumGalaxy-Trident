@@ -110,8 +110,6 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     uint256 private constant DECIMALS = 10**18;
 
 
-    ///@notice functions constract instance
-    TridentFunctions private immutable i_functions;
     ///@notice link token contract address
     LinkTokenInterface private immutable i_link;
 
@@ -120,7 +118,11 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     ///////////////////////
     uint256 private s_gameIdCounter;
     uint256 private s_ccipCounter;
+
+    ///@notice CCIP router address
     IRouterClient private s_router;
+    ///@notice functions constract instance
+    TridentFunctions private s_functions;
 
     ///@notice Mapping to keep track of allowed stablecoins. ~ 0 = not allowed | 1 = allowed
     mapping(ERC20 tokenAddress => uint256 allowed) private s_tokenAllowed;
@@ -156,6 +158,8 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     event Trident_CrossChainReceiverUpdated(uint64 destinationChainId, address receiver);
     ///@notice emitted when a CCIP router is added to the protocol
     event Trident_CCIPRouterUpdated(IRouterClient previousRouter, IRouterClient router);
+    ///@notice emitted when the Functions Contract address is updated
+    event Trident_FunctionsAddressUpdated(address previousAddress, address functionsAddress);
     ///@notice event emitted when a new game nft is created
     event Trident_NewGameCreated(uint256 gameId, string tokenSymbol, string gameName, TridentNFT trident);
     ///@notice event emitted when infos about a new game is released
@@ -163,7 +167,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     ///@notice event emitted when a new copy is sold.
     event Trident_NewGameSold(uint256 gameId, string gameName, address payer, uint256 date, address gameReceiver);
     ///@notice event emitted when a Cross-chain transaction occur
-    event Trident_DataBaseUpdated(address from, address receiver, uint256 nftId);
+    event Trident_DataBaseUpdated(address gameAddress, address from, address receiver, uint256 nftId);
     ///@notice event emitted when a CCIP message is received
     event Trident_MessageReceived(bytes32 messageId, uint64 sourceChainSelector, address sender);
     ///@notice event emitted when a CCIP message is sent
@@ -188,7 +192,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     ///CONSTRUCTOR///
     /////////////////
     constructor(address _owner, TridentFunctions _functionsAddress, IRouterClient _router, LinkTokenInterface _link) CCIPReceiver(address(_router)) Ownable(_owner){
-        i_functions = _functionsAddress;
+        s_functions = _functionsAddress;
         i_link = _link;
     }
 
@@ -270,6 +274,15 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         s_router = _router;
 
         emit Trident_CCIPRouterUpdated(previousRouter, _router);
+    }
+
+    //@test
+    function manageFunctionsContract(address _functions) external onlyOwner{
+        address previousAddress = address(s_functions);
+
+        s_functions = TridentFunctions(_functions);
+
+        emit Trident_FunctionsAddressUpdated(previousAddress, _functions);
     }
 
     /**
@@ -362,29 +375,33 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         if(s_allowlistedSenders[log.source] != ONE) revert Trident_InvalidLogEmissor(log.source);
 
         // emit Transfer(from, to, tokenId);
+        address gameAddress = log.source;
         address from = address(uint160(uint256(log.topics[1])));
         address receiver = address(uint160(uint256(log.topics[2])));
         uint256 nftId = uint256(log.topics[3]);
 
-        performData = abi.encode(from, receiver, nftId);
+        performData = abi.encode(gameAddress, from, receiver, nftId);
         upkeepNeeded = true;
     }
 
-    //perform precisa escrever os dados recebidos do evento em um storage.
     //https://docs.chain.link/chainlink-automation/reference/automation-interfaces#ilogautomation
     function performUpkeep(bytes calldata performData) external {
         if(s_allowedKeeperRelayers[msg.sender] != ONE) revert Trident_InvalidCaller(msg.sender);
 
-        address from;
-        address receiver;
-        uint256 nftId;
+        (address gameAddress,
+        address previousOwner,
+        address receiver,
+        uint256 nftId) = abi.decode(performData, (address, address, address, uint256));
 
-        (from, receiver, nftId) = abi.decode(performData, (address, address, uint256));
+        bytes[] memory requestData = new bytes[](4);
+        requestData[0] = abi.encode(gameAddress);
+        requestData[1] = abi.encode(previousOwner);
+        requestData[2] = abi.encode(receiver);
+        requestData[3] = abi.encode(nftId);
 
-        emit Trident_DataBaseUpdated(from, receiver, nftId);
+        emit Trident_DataBaseUpdated(gameAddress, previousOwner, receiver, nftId);
 
-        //@AJUSTE Quais infos mando para o banco? Wallet Address / NFT Game Address / 
-        // i_functions.sendRequest(from, receiver, nftId);
+        s_functions.sendRequestToPost(requestData);
     }
 
     //////////////

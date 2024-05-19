@@ -9,11 +9,12 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
 
+
 //////////////
 /// ERRORS ///
 //////////////
-error TridentMFunctions_UnexpectedRequestID(bytes32 requestId);
-error TridentMFunctions_EmptyArgs();
+error TridentFunctions_UnexpectedRequestID(bytes32 requestId);
+error TridentFunctions_EmptyArgs();
 
 contract TridentFunctions is FunctionsClient, Ownable{
     using FunctionsRequest for FunctionsRequest.Request;
@@ -27,6 +28,12 @@ contract TridentFunctions is FunctionsClient, Ownable{
         bool exists;
     }
 
+    struct GameScore{
+        bytes lastResponse;
+        bytes lastError;
+        bool exists;
+        uint256 score;
+    }
     /////////////////////
     ///State variables///
     /////////////////////
@@ -34,10 +41,26 @@ contract TridentFunctions is FunctionsClient, Ownable{
     address endereco = 0x6f09A3ED4E1a231a34EA8d726b6c2a69207Dd379;
 
     // @Update with protocol info.
-    string private constant SOURCE =
-        "const characterId = args[0];"
+    string private constant SOURCE_POST =
+        "const gameAddress = args[0];"
+        "const previousOwner = args[1];"
+        "const receiver = args[2];"
+        "const nftId = args[3];"
         "const apiResponse = await Functions.makeHttpRequest({"
         "url: `https://swapi.info/api/people/${characterId}/`"
+        "method: POST"
+        "});"
+        "if (apiResponse.error) {"
+        "throw Error('Request failed');"
+        "}"
+        "const { data } = apiResponse;"
+        "return Functions.encodeUint(data.score);"; //I think we don't need to return anything here
+    
+    string private constant SOURCE_GET =
+        "const gameAddress = args[0];"
+        "const apiResponse = await Functions.makeHttpRequest({"
+        "url: `https://swapi.info/api/people/${characterId}/`"
+        "method: GET"
         "});"
         "if (apiResponse.error) {"
         "throw Error('Request failed');"
@@ -45,8 +68,8 @@ contract TridentFunctions is FunctionsClient, Ownable{
         "const { data } = apiResponse;"
         "return Functions.encodeUint(data.score);";
 
-
     mapping(bytes32 requestId => FunctionsResponse) private s_responses;
+    mapping(bytes32 requestId => GameScore) private s_responsesGet;
 
     ///////////////
     ///CONSTANTS///
@@ -64,15 +87,15 @@ contract TridentFunctions is FunctionsClient, Ownable{
     ////////////
     ///Events///
     ////////////
-    event TridentMFunctions_Response(bytes32 indexed requestId, bytes response, bytes err);
+    event TridentFunctions_Response(bytes32 indexed requestId, bytes response, bytes err);
 
     ///////////////
     ///Modifiers///
     ///////////////
 
-    ///////////////
-    ///Functions///
-    ///////////////
+    /////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////Functions////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
 
     /////////////////
     ///constructor///
@@ -82,28 +105,23 @@ contract TridentFunctions is FunctionsClient, Ownable{
         i_subscriptionId = _subId;
     }
 
-    ///////////////////////
-    ///receive function ///
-    ///fallback function///
-    ///////////////////////
-
     //////////////
     ///external///
     //////////////
     /**
      * @notice Sends an HTTP request for character information
-     * @param _args The arguments to pass to the HTTP request
+     * @param _bytesArgs The arguments to pass to the HTTP request
      * @return requestId The ID of the request
      */
-    function sendRequest(string[] calldata _args) external onlyOwner returns (bytes32 requestId) {
-        if(_args.length < ONE) revert TridentMFunctions_EmptyArgs();
+    function sendRequestToPost(bytes[] memory _bytesArgs) external onlyOwner returns (bytes32 requestId) {
+        if(_bytesArgs.length < ONE) revert TridentFunctions_EmptyArgs();
 
         FunctionsRequest.Request memory req;
         // Initialize the request with JS code
-        req.initializeRequestForInlineJavaScript(SOURCE);
+        req.initializeRequestForInlineJavaScript(SOURCE_POST);
 
         // Set the arguments for the request
-        req.setArgs(_args);
+        req.setBytesArgs(_bytesArgs);
 
         // Send the request and store the request ID
         requestId = _sendRequest(
@@ -120,9 +138,36 @@ contract TridentFunctions is FunctionsClient, Ownable{
         });
     }
 
-    ////////////
-    ///public///
-    ////////////
+    /**
+     * @notice Sends an HTTP request for character information
+     * @param _bytesArgs The arguments to pass to the HTTP request
+     * @return requestId The ID of the request
+     */
+    function sendRequestToGet(bytes[] memory _bytesArgs) external onlyOwner returns (bytes32 requestId) {
+        if(_bytesArgs.length < ONE) revert TridentFunctions_EmptyArgs();
+
+        FunctionsRequest.Request memory req;
+        // Initialize the request with JS code
+        req.initializeRequestForInlineJavaScript(SOURCE_GET);
+
+        // Set the arguments for the request
+        req.setBytesArgs(_bytesArgs);
+
+        // Send the request and store the request ID
+        requestId = _sendRequest(
+            req.encodeCBOR(),
+            i_subscriptionId,
+            GAS_LIMIT,
+            i_donID
+        );
+
+        s_responsesGet[requestId] = GameScore({
+            lastResponse: "",
+            lastError: "",
+            exists: true,
+            score: 0
+        });
+    }
 
     //////////////
     ///internal///
@@ -134,15 +179,22 @@ contract TridentFunctions is FunctionsClient, Ownable{
      * @param _err Any errors from the Functions request
     */
     function fulfillRequest(bytes32 _requestId, bytes memory _response, bytes memory _err) internal override {
-        if (s_responses[_requestId].exists == false ) revert TridentMFunctions_UnexpectedRequestID(_requestId);
+        if (s_responses[_requestId].exists == false ) revert TridentFunctions_UnexpectedRequestID(_requestId);
         
-        FunctionsResponse memory functions = s_responses[_requestId];
+        FunctionsResponse storage functions = s_responses[_requestId];
+        GameScore storage score = s_responsesGet[_requestId];
 
-        // Update the contract's state variables with the response and any errors
-        functions.lastResponse = _response;
-        functions.lastError = _err;
+        if(functions.exists == true){
+            // Update the contract's state variables with the response and any errors
+            functions.lastResponse = _response;
+            functions.lastError = _err;
+        } else if(score.exists == true){
+            score.lastResponse = _response;
+            score.lastError = _err;
+            score.score = abi.decode(_response, (uint256));
+        }
 
-        emit TridentMFunctions_Response(_requestId, _response, _err);
+        emit TridentFunctions_Response(_requestId, _response, _err);
     }
     /////////////
     ///private///

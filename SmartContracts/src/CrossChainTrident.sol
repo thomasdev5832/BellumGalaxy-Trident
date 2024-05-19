@@ -193,7 +193,6 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
         * @param _amount The token amount
         * @return messageId The ID of the message that was sent.
     */
-    //@Test
     function sendAdminMessage(IERC20 _token, uint256 _amount) external payable onlyOwner returns (bytes32 messageId) {
         bytes memory data = abi.encode(0, block.timestamp, _amount *10**18, address(this));
        messageId = _sendMessage(data, _token, _amount *10**18);
