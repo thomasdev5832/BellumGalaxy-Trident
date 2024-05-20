@@ -1,10 +1,11 @@
+
 services:
-  postgres:
-    image: postgres:latest
-    container_name:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - '5432:5432'
-    environment:
-      POSTGRES_DB:
-      POSTGRES_USER:
-      POSTGRES_PASSWORD:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: always
