@@ -15,16 +15,16 @@ export class UserService {
     return this.userRepository.find();
   }
 
-  async getUserById(id: number): Promise<UserDto | undefined> {
+  async getUserById(id: string): Promise<UserDto | undefined> {
     return this.userRepository.findOne({ where: { userId: id } });
   }
 
   async createUser(userData: UserDto): Promise<UserDto> {
-    const newUser = this.userRepository.create(userData);
+    const newUser = await this.userRepository.create(userData);
     return this.userRepository.save(newUser);
   }
 
-  async updateUser(id: number, userData: Partial<UserDto>): Promise<UserDto | null> {
+  async updateUser(id: string, userData: Partial<UserDto>): Promise<UserDto | null> {
     const user = await this.userRepository.findOne({ where: { userId: id } });
     if (!user) {
       return null;
@@ -33,7 +33,7 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  async deleteUser(id: number): Promise<UserDto | null> {
+  async deleteUser(id: string): Promise<UserDto | null> {
     const user = await this.userRepository.findOne({ where: { userId: id } });
     if (!user) {
       return null;
@@ -43,6 +43,6 @@ export class UserService {
   }
 
   async findByUserName(username: string): Promise<UserDto | null> {
-    return this.userRepository.findOne({ where: { name: username } });
+    return await this.userRepository.findOne({ where: { name: username } });
   }
 }

@@ -12,7 +12,7 @@ export class AuthController {
         signIn(
             @Body('username') username: string,
             @Body('password') password: string
-        ): AuthResponseDto{
+        ):Promise<AuthResponseDto>{
             return this.authService.signIn(username, password);
         }
 }

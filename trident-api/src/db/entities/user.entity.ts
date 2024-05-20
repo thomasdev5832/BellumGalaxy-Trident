@@ -4,7 +4,7 @@ import { GameEntity } from "./game.entity";
 @Entity({ name: 'users' })
 export class UserEntity {
     @PrimaryGeneratedColumn()
-    userId: number;
+    userId: string;
 
     @Column({ type: 'varchar', length: 255, nullable: false })
     name: string;

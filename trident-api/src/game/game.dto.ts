@@ -1,11 +1,13 @@
 import { IsBoolean, IsDateString, IsNumber, IsOptional, IsString, MaxLength, MinLength, IsUrl } from "class-validator";
+import { Type } from 'class-transformer';
+
 
 export class GameDto {
   @IsNumber()
-  gameId: number;
+  gameId: string;
 
   @IsNumber()
-  userId: number;
+  userId: string;
 
   @IsString()
   @MinLength(1)
@@ -17,7 +19,8 @@ export class GameDto {
 
   @IsString()
   @IsOptional()
-  timeLimit?: string;
+  @Type(() => Date)
+  timeLimit?: Date;
 
   @IsString()
   @MinLength(1)
@@ -31,7 +34,8 @@ export class GameDto {
 
   @IsString()
   @IsOptional()
-  timePlayed?: string;
+  @Type(() => Date)
+  timePlayed?: Date;
 
   @IsBoolean()
   isBlocked: boolean;

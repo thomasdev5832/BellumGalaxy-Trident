@@ -2,7 +2,7 @@ import { IsNumber, IsEmail, IsOptional, IsString, MaxLength, MinLength } from "c
 
 export class UserDto {
     @IsNumber()
-    userId: number;
+    userId: string;
 
     @IsString()
     @MinLength(1)
