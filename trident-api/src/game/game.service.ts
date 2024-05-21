@@ -1,48 +1,52 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { GameDto } from './game.dto';
-import { v4 as uuid } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { GameEntity } from 'src/db/entities/game.entity';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class GameService {
 
-  private games: GameDto[] = [];
+  constructor(
+    @InjectRepository(GameEntity)
+    private readonly gameRepository: Repository<GameEntity>,
+  ) {}
 
-  getAllGames() {
-    return this.games;
+  async getAllGames(): Promise<GameEntity[]> {
+    return await this.gameRepository.find();
   }
 
-  getGameById(id: string): GameDto {
-    return this.games.find(game => game.gameId === id); 
+  async getGameById(id: string): Promise<GameEntity> {
+    const game = await this.gameRepository.findOne({ where: { gameId: id } });
+    if (!game) {
+      throw new HttpException(`Game with id ${id} not found`, HttpStatus.NOT_FOUND);
+    }
+    return game;
   }
 
-  createGame(gameData: GameDto) {
-    const newGame = { ...gameData, id: (this.games.length + 1).toString() };
-    this.games.push(newGame); 
-    return newGame;
-}
+  async createGame(gameData: GameDto): Promise<GameEntity> {
+    const gameEntity = plainToClass(GameEntity, gameData); // transform gameData to GameEntity
+    gameEntity.user = { userId: gameData.userId } as any; // Adapt to ManyToOne
 
-  updateGame(id: string, gameData: GameDto) {
-    const index = this.games.findIndex(game => game.gameId === id); 
-    if (index === -1) {
-      return null;
-    }
-    if(index >= 0) {
-      this.games[index] = { ...this.games[index], ...gameData };
-      return this.games[index];
-    }
-    throw new HttpException(`Game with id ${gameData.gameId} not found`, HttpStatus.BAD_REQUEST);
+    return await this.gameRepository.save(gameEntity);
   }
 
-  deleteGame(id: string) {
-    const index = this.games.findIndex(game => game.gameId === id); 
-    if (index === -1) {
-      return null;
+  async updateGame(id: string, gameData: GameDto): Promise<GameEntity> {
+    const game = await this.getGameById(id);
+    if (!game) {
+      throw new HttpException(`Game with id ${id} not found`, HttpStatus.NOT_FOUND);
     }
-    if(index >= 0){
-      const deletedGame = this.games[index];
-      this.games.splice(index, 1); 
-      return deletedGame; 
+    Object.assign(game, gameData);
+    return await this.gameRepository.save(game);
+  }
+
+  async deleteGame(id: string): Promise<GameEntity> {
+    const game = await this.getGameById(id);
+    if (!game) {
+      throw new HttpException(`Game with id ${id} not found`, HttpStatus.NOT_FOUND);
     }
-    throw new HttpException(`Game with id ${id} not found`, HttpStatus.BAD_REQUEST);
+    await this.gameRepository.delete(id);
+    return game;
   }
 }

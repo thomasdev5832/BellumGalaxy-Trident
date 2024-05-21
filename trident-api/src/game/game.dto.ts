@@ -3,10 +3,10 @@ import { Type } from 'class-transformer';
 
 
 export class GameDto {
-  @IsNumber()
+  @IsString()
   gameId: string;
 
-  @IsNumber()
+  @IsString()
   userId: string;
 
   @IsString()
