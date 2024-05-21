@@ -1,7 +1,7 @@
 import { IsNumber, IsEmail, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class UserDto {
-    @IsNumber()
+    @IsString()
     userId: string;
 
     @IsString()

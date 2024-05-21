@@ -4,7 +4,7 @@ import { UserEntity } from "./user.entity";
 @Entity({ name: 'games' })
 export class GameEntity {
     @PrimaryGeneratedColumn()
-    gameId: number;
+    gameId: string;
 
     @ManyToOne(() => UserEntity, user => user.games, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId' })
