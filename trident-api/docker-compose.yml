@@ -1,16 +1,5 @@
 
 services:
-  postgres:
-    image: postgres:latest
-    container_name: trident_postgres
-    environment:
-      - POSTGRES_DB=trident
-      - POSTGRES_USER=trident_owner
-      - POSTGRES_PASSWORD=batata1123
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
   app:
     build:
       context: .
@@ -20,7 +9,3 @@ services:
     env_file:
       - .env
     restart: always
- 
-volumes:
-  postgres_data:
-    driver: local
