@@ -3,7 +3,7 @@ import { GameService } from './game.service';
 import { GameDto } from './game.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 
-@UseGuards(AuthGuard)
+// @UseGuards(AuthGuard)
 @Controller('game')
 export class GameController {
   constructor(private readonly gameService: GameService) {} 
