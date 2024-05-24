@@ -45,4 +45,7 @@ export class UserService {
   async findByUserName(username: string): Promise<UserDto | null> {
     return await this.userRepository.findOne({ where: { name: username } });
   }
+  async findByUserEmail(email: string): Promise<UserDto | null> {
+    return await this.userRepository.findOne({ where: { email } });
+  }
 }
