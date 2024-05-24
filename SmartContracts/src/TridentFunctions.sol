@@ -46,15 +46,21 @@ contract TridentFunctions is FunctionsClient, Ownable{
         "const previousOwner = args[1];"
         "const receiver = args[2];"
         "const nftId = args[3];"
-        "const apiResponse = await Functions.makeHttpRequest({"
-        "url: `https://swapi.info/api/people/${characterId}/`"
-        "method: POST"
+        "const response = await Functions.makeHttpRequest({"
+        "url: http://64.227.122.74:3000/order"
+        "method: POST,"
+        "data:{gameAddress: 0x6f09A3ED4E1a231a34EA8d726b6c2a69207Dd379,"
+            "previousOwner: 0x000000000000000000000000000000000000,"
+            "receiver: 0xB015a6318f1D19DC3E135C8cEBa4bda00845c9Be,"
+            "nftId: 1,"
+            "gameId: 24d6b87a-ecaf-465f-920c-a58417d61e72,"
+            "userId: 1606f53e-e5a1-4e99-a413-2c94789cc09c}"
         "});"
-        "if (apiResponse.error) {"
+        "if (response.error) {"
         "throw Error('Request failed');"
         "}"
-        "const { data } = apiResponse;"
-        "return Functions.encodeUint(data.score);"; //I think we don't need to return anything here
+        "const { data } = response;"
+        "return Functions.encodeString(data);";
     
     string private constant SOURCE_GET =
         "const gameAddress = args[0];"
