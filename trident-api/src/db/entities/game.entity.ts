@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { UserEntity } from "./user.entity";
+import { OrderEntity } from "./order.entity";
 
 @Entity({ name: 'games' })
 export class GameEntity {
@@ -33,4 +34,7 @@ export class GameEntity {
 
     @Column({ type: 'varchar', length: 255, nullable: true })
     gameImageUrl: string;
+
+    @OneToMany(() => OrderEntity, game => game.user)
+    orders: GameEntity[];
 }

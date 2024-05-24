@@ -1,39 +1,44 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { OrderEntity } from 'src/db/entities/order.entity';
+import { Repository } from 'typeorm';
+import { OrderDto } from './order.dto';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class OrderService {
-  private orders = [];
-
-  getAllOrders() {
-    return this.orders; 
+  constructor(
+    @InjectRepository(OrderEntity)
+    private readonly orderRepository: Repository<OrderEntity>,
+  ) {}
+  async getAllOrders() {
+    return  await this.orderRepository.find()
+  }
+  async getOrderById(id: string) {
+    return await this.orderRepository.findOne({ where: { id } });
+  }
+  async createOrder(orderData: OrderDto) {
+    const orderEntity = plainToClass(OrderEntity, orderData); // transform gameData to GameEntity
+    orderEntity.user = { userId: orderData.userId } as any;
+    orderEntity.game = { gameId: orderData.gameId} as any; // Adapt to ManyToOne
+    return await this.orderRepository.save(orderEntity);
   }
 
-  getOrderById(id: string) {
-    return this.orders.find(order => order.id === id); 
-  }
-
-  createOrder(orderData: any) {
-    const newOrder = { ...orderData, id: (this.orders.length + 1).toString() };
-    this.orders.push(newOrder);
-    return newOrder;
-  }
-
-  updateOrder(id: string, orderData: any) {
-    const index = this.orders.findIndex(order => order.id === id); 
-    if (index === -1) {
-      return null; 
+  async updateOrder(id: string, orderData: OrderDto) {
+    const order = await this.getOrderById(id)
+    if (!order) {
+      throw new HttpException(`Order with id ${id} not found`, HttpStatus.NOT_FOUND);
     }
-    this.orders[index] = { ...this.orders[index], ...orderData }; 
-    return this.orders[index]; 
+    Object.assign(order, orderData);
+    return await this.orderRepository.save(order);
   }
 
-  deleteOrder(id: string) {
-    const index = this.orders.findIndex(order => order.id === id); 
-    if (index === -1) {
-      return null;
+  async deleteOrder(id: string) {
+    const order = await this.getOrderById(id);
+    if (!order) {
+      throw new HttpException(`Order with id ${id} not found`, HttpStatus.NOT_FOUND);
     }
-    const deletedOrder = this.orders[index]; 
-    this.orders.splice(index, 1);
-    return deletedOrder;
+    await this.orderRepository.delete(id);
+    return order;
   }
 }
