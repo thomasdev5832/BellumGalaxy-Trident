@@ -20,6 +20,7 @@ export class OrderController {
  }
   @Post()
   createOrder(@Body() orderData: any) {
+    console.log('envio post',orderData)
     return this.orderService.createOrder(orderData);
   }
 
