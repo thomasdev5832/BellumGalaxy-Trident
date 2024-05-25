@@ -7,13 +7,13 @@ export class OrderEntity {
     @PrimaryGeneratedColumn()
     id: string;
 
-    @ManyToOne(() => UserEntity, user => user.games, { onDelete: 'CASCADE' })
+    @ManyToOne(() => UserEntity, user => user.orders, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId' })
     user: UserEntity;
 
     @ManyToOne(() => GameEntity, game => game.orders, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'gameId' })
-    game: UserEntity;
+    game: GameEntity;
 
     @Column({ type: 'date', nullable: false })
     created_at: Date;
@@ -29,4 +29,7 @@ export class OrderEntity {
 
     @Column({ type: 'int', nullable: true })
     nftId: number;
+
+    @Column({ type: 'bool', nullable: true, default: false })
+    isBlocked: boolean;
 }

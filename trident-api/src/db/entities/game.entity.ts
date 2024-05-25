@@ -7,9 +7,9 @@ export class GameEntity {
     @PrimaryGeneratedColumn()
     gameId: string;
 
-    @ManyToOne(() => UserEntity, user => user.games, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'userId' })
-    user: UserEntity;
+    // @ManyToOne(() => UserEntity, user => user.games, { onDelete: 'CASCADE' })
+    // @JoinColumn({ name: 'userId' })
+    // user: UserEntity;
 
     @Column({ type: 'varchar', length: 255, nullable: false })
     name: string;

@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import { Type } from 'class-transformer';
 
 
@@ -21,7 +21,6 @@ export class OrderDto {
   @MaxLength(255)
   gameId: string;
 
-
   @IsString()
   @MinLength(1)
   @MaxLength(255)
@@ -39,4 +38,18 @@ export class OrderDto {
 
   @IsNumber()
   nftId: number;
+
+  @IsString()
+  @MinLength(1)
+  @MaxLength(255)
+  gameName?: string;
+
+  @IsString()
+  @MinLength(1)
+  @MaxLength(255)
+  gameSymbol?: string;
+
+
+  @IsBoolean()
+  isBlocked: boolean;
 }

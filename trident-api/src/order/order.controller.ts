@@ -14,7 +14,10 @@ export class OrderController {
   getOrderById(@Param('id') id: string) {
     return this.orderService.getOrderById(id);
   }
-
+ @Get('/user/:userId')
+ findOrderByUserId(@Param('userId') userId: string){
+    return this.orderService.findOrderByUserId(userId)
+ }
   @Post()
   createOrder(@Body() orderData: any) {
     return this.orderService.createOrder(orderData);

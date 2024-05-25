@@ -27,8 +27,6 @@ export class GameService {
 
   async createGame(gameData: GameDto): Promise<GameEntity> {
     const gameEntity = plainToClass(GameEntity, gameData); // transform gameData to GameEntity
-    gameEntity.user = { userId: gameData.userId } as any; // Adapt to ManyToOne
-
     return await this.gameRepository.save(gameEntity);
   }
 
@@ -41,12 +39,22 @@ export class GameService {
     return await this.gameRepository.save(game);
   }
 
+  
   async deleteGame(id: string): Promise<GameEntity> {
     const game = await this.getGameById(id);
     if (!game) {
       throw new HttpException(`Game with id ${id} not found`, HttpStatus.NOT_FOUND);
     }
-    await this.gameRepository.delete(id);
+    await await this.gameRepository.delete(id);
     return game;
+  }
+
+  async findGameByName(name:string): Promise<GameEntity>{
+    const game = await this.gameRepository.findOne({ where: { name } });
+
+    if (!game) {
+      throw new HttpException(`Game with name ${name} not found`, HttpStatus.NOT_FOUND);
+    }
+    return game
   }
 }

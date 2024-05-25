@@ -48,4 +48,8 @@ export class UserService {
   async findByUserEmail(email: string): Promise<UserDto | null> {
     return await this.userRepository.findOne({ where: { email } });
   }
+
+  async findByUserWallerId(walletId: string): Promise<UserDto | null> {
+    return await this.userRepository.findOne({ where: { walletId } });
+  }
 }
