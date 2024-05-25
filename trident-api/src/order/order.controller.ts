@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, HttpException, HttpStatus } from '@nestjs/common';
 import { OrderService } from './order.service'; // Importe o serviço de pedido
 
 @Controller('order')
@@ -20,8 +20,11 @@ export class OrderController {
  }
   @Post()
   createOrder(@Body() orderData: any) {
-    console.log('envio post',orderData)
-    return this.orderService.createOrder(orderData);
+    console.log('envio post',orderData)      
+    if(Object.entries(orderData).length  == 6){
+      return this.orderService.createOrder(orderData);
+    }
+    throw new HttpException(`invalid Payload`, HttpStatus.BAD_REQUEST);
   }
 
   @Put(':id')
