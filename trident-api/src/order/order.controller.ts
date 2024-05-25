@@ -18,8 +18,33 @@ export class OrderController {
  findOrderByUserId(@Param('userId') userId: string){
     return this.orderService.findOrderByUserId(userId)
  }
-  @Post()
-  createOrder(@Body() orderData: any) {
+
+  // @Post()
+  // createOrder(@Body() orderData: any) {
+  //   console.log('envio post',orderData)      
+  //   if(Object.entries(orderData).length  == 6){
+  //     return this.orderService.createOrder(orderData);
+  //   }
+  //   throw new HttpException(`invalid Payload`, HttpStatus.BAD_REQUEST);
+
+  // }
+  @Post("gameAddress/:gameAddress/previousOwner/:previousOwner/receiver/:receiver/nftId/:nftId/gameName/:gameName/gameSymbol/:gameSymbol")
+  createOrder(
+  @Param('gameAddress') gameAddress: string, 
+  @Param('previousOwner') previousOwner: string,
+  @Param('receiver') receiver:string, 
+  @Param('nftId') nftId: number, 
+  @Param('gameName') gameName: string, 
+  @Param('gameSymbol') gameSymbol: string) {
+
+    const orderData = {
+      gameAddress,
+      previousOwner,
+      receiver,
+      nftId: Number(nftId),
+      gameName,
+      gameSymbol
+    }
     console.log('envio post',orderData)      
     if(Object.entries(orderData).length  == 6){
       return this.orderService.createOrder(orderData);

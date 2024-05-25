@@ -4,7 +4,7 @@ import { Type } from 'class-transformer';
 
 export class OrderDto {
   @IsString()
-  id: string;
+  id?: string;
 
   @IsString()
   @IsOptional()
@@ -14,12 +14,12 @@ export class OrderDto {
   @IsString()
   @MinLength(1)
   @MaxLength(255)
-  userId: string;
+  userId?: string;
 
   @IsString()
   @MinLength(1)
   @MaxLength(255)
-  gameId: string;
+  gameId?: string;
 
   @IsString()
   @MinLength(1)
@@ -51,5 +51,5 @@ export class OrderDto {
 
 
   @IsBoolean()
-  isBlocked: boolean;
+  isBlocked?: boolean;
 }
