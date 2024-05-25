@@ -15,6 +15,7 @@ import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/l
 //////////////
 error TridentFunctions_UnexpectedRequestID(bytes32 requestId);
 error TridentFunctions_EmptyArgs();
+error TridentFunctions_CallerNotAllowed();
 
 contract TridentFunctions is FunctionsClient, Ownable{
     using FunctionsRequest for FunctionsRequest.Request;
@@ -42,25 +43,28 @@ contract TridentFunctions is FunctionsClient, Ownable{
 
     // @Update with protocol info.
     string private constant SOURCE_POST =
-        "const gameAddress = args[0];"
-        "const previousOwner = args[1];"
-        "const receiver = args[2];"
-        "const nftId = args[3];"
+        "const name = args[0];"
+        "const symbol = args[1];"
+        "const gameAddress = args[2];"
+        "const previousOwner = args[3];"
+        "const receiver = args[4];"
+        "const nftId = args[5];"
         "const response = await Functions.makeHttpRequest({"
         "url: http://64.227.122.74:3000/order"
         "method: POST,"
-        "data:{gameAddress: 0x6f09A3ED4E1a231a34EA8d726b6c2a69207Dd379,"
-            "previousOwner: 0x000000000000000000000000000000000000,"
-            "receiver: 0xB015a6318f1D19DC3E135C8cEBa4bda00845c9Be,"
-            "nftId: 1,"
-            "gameId: 24d6b87a-ecaf-465f-920c-a58417d61e72,"
-            "userId: 1606f53e-e5a1-4e99-a413-2c94789cc09c}"
+        "data:{gameAddress: `${gameAddress}`,"
+            "previousOwner: `${previousOwner}`,"
+            "receiver: `${receiver}`,"
+            "nftId: `${nftId}`,"
+            "gameName: `${name}`,"
+            "gameSymbol:`${symbol}`"
         "});"
         "if (response.error) {"
         "throw Error('Request failed');"
         "}"
         "const { data } = response;"
-        "return Functions.encodeString(data);";
+        "return Functions.encodeString(data);"
+    ;
     
     string private constant SOURCE_GET =
         "const gameAddress = args[0];"
@@ -72,10 +76,12 @@ contract TridentFunctions is FunctionsClient, Ownable{
         "throw Error('Request failed');"
         "}"
         "const { data } = apiResponse;"
-        "return Functions.encodeUint(data.score);";
+        "return Functions.encodeUint(data.score);"
+    ;
 
     mapping(bytes32 requestId => FunctionsResponse) private s_responses;
     mapping(bytes32 requestId => GameScore) private s_responsesGet;
+    mapping(address nftAddress => uint256 isAllowed) private s_allowedAddresses;
 
     ///////////////
     ///CONSTANTS///
@@ -94,6 +100,7 @@ contract TridentFunctions is FunctionsClient, Ownable{
     ///Events///
     ////////////
     event TridentFunctions_Response(bytes32 indexed requestId, bytes response, bytes err);
+    event TridentFunctions_AllowedCallerContracts(address caller, uint256 isAllowed);
 
     ///////////////
     ///Modifiers///
@@ -114,12 +121,19 @@ contract TridentFunctions is FunctionsClient, Ownable{
     //////////////
     ///external///
     //////////////
+    function setAllowedContracts(address _caller, uint256 _isAllowed) external onlyOwner{
+        s_allowedAddresses[_caller] = _isAllowed;
+
+        emit TridentFunctions_AllowedCallerContracts(_caller, _isAllowed);
+    }
+
     /**
      * @notice Sends an HTTP request for character information
      * @param _bytesArgs The arguments to pass to the HTTP request
      * @return requestId The ID of the request
      */
     function sendRequestToPost(bytes[] memory _bytesArgs) external onlyOwner returns (bytes32 requestId) {
+        if(s_allowedAddresses[msg.sender] != ONE) revert TridentFunctions_CallerNotAllowed();
         if(_bytesArgs.length < ONE) revert TridentFunctions_EmptyArgs();
 
         FunctionsRequest.Request memory req;
@@ -150,6 +164,7 @@ contract TridentFunctions is FunctionsClient, Ownable{
      * @return requestId The ID of the request
      */
     function sendRequestToGet(bytes[] memory _bytesArgs) external onlyOwner returns (bytes32 requestId) {
+        if(s_allowedAddresses[msg.sender] != ONE) revert TridentFunctions_CallerNotAllowed();
         if(_bytesArgs.length < ONE) revert TridentFunctions_EmptyArgs();
 
         FunctionsRequest.Request memory req;
