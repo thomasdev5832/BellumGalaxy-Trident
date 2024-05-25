@@ -5,7 +5,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import { ILogAutomation, Log } from "@chainlink/contracts/src/v0.8/automation/interfaces/ILogAutomation.sol";
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
@@ -63,7 +62,7 @@ error Trident_NotEnoughLinkBalance(uint256 currentBalance, uint256 calculatedFee
     *@dev do not use in production
     *contact www.bellumgalaxy.com - https://linktr.ee/bellumgalaxy
 */
-contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
+contract Trident is CCIPReceiver, Ownable{
     using SafeERC20 for ERC20;
     
     ////////////////////
@@ -161,7 +160,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
     ///@notice emitted when the Functions Contract address is updated
     event Trident_FunctionsAddressUpdated(address previousAddress, address functionsAddress);
     ///@notice event emitted when a new game nft is created
-    event Trident_NewGameCreated(uint256 gameId, string tokenSymbol, string gameName, TridentNFT trident);
+    event Trident_NewGameCreated(uint256 gameId, string tokenSymbol, string gameName, TridentNFT tridentNFT);
     ///@notice event emitted when infos about a new game is released
     event Trident_ReleaseConditionsSet(uint256 gameId, uint256 startingDate, uint256 price);
     ///@notice event emitted when a new copy is sold.
@@ -307,6 +306,10 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         emit Trident_NewGameCreated(s_gameIdCounter, _gameSymbol, _gameName, s_gamesCreated[s_gameIdCounter].keyAddress);
 
         s_gamesCreated[s_gameIdCounter].keyAddress = new TridentNFT(_gameName, _gameSymbol, address(this));
+
+        s_gamesCreated[s_gameIdCounter].keyAddress.setFunctionsContract(address(s_functions));
+
+        s_functions.setAllowedContracts(address(s_gamesCreated[s_gameIdCounter].keyAddress), 1);
     }
 
     /**
@@ -369,41 +372,6 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         _handleExternalCall(_gameId, gameNft.keyAddress, block.timestamp, game.price, buyer, _gameReceiver, _chosenToken);
     }
 
-    //https://docs.chain.link/chainlink-automation/guides/log-trigger
-    function checkLog(Log calldata log, bytes memory) external view returns (bool upkeepNeeded, bytes memory performData){
-        if(s_allowedKeeperRelayers[msg.sender] != ONE) revert Trident_InvalidCaller(msg.sender);
-        if(s_allowlistedSenders[log.source] != ONE) revert Trident_InvalidLogEmissor(log.source);
-
-        // emit Transfer(from, to, tokenId);
-        address gameAddress = log.source;
-        address from = address(uint160(uint256(log.topics[1])));
-        address receiver = address(uint160(uint256(log.topics[2])));
-        uint256 nftId = uint256(log.topics[3]);
-
-        performData = abi.encode(gameAddress, from, receiver, nftId);
-        upkeepNeeded = true;
-    }
-
-    //https://docs.chain.link/chainlink-automation/reference/automation-interfaces#ilogautomation
-    function performUpkeep(bytes calldata performData) external {
-        if(s_allowedKeeperRelayers[msg.sender] != ONE) revert Trident_InvalidCaller(msg.sender);
-
-        (address gameAddress,
-        address previousOwner,
-        address receiver,
-        uint256 nftId) = abi.decode(performData, (address, address, address, uint256));
-
-        bytes[] memory requestData = new bytes[](4);
-        requestData[0] = abi.encode(gameAddress);
-        requestData[1] = abi.encode(previousOwner);
-        requestData[2] = abi.encode(receiver);
-        requestData[3] = abi.encode(nftId);
-
-        emit Trident_DataBaseUpdated(gameAddress, previousOwner, receiver, nftId);
-
-        s_functions.sendRequestToPost(requestData);
-    }
-
     //////////////
     ///INTERNAL///
     //////////////
@@ -435,7 +403,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
 
             emit Trident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)));
 
-            release.keyAddress.safeMint(gameReceiver, "");
+            release.keyAddress.safeMint(gameReceiver);
         }
     }
 
@@ -466,7 +434,7 @@ contract Trident is  ILogAutomation, CCIPReceiver, Ownable{
         emit Trident_NewGameSold(_gameId, gameNft.gameName, _buyer, _buyingDate, _gameReceiver);
 
         //INTERACTIONS
-        gameNft.keyAddress.safeMint(_gameReceiver, "");
+        gameNft.keyAddress.safeMint(_gameReceiver);
         _chosenToken.safeTransferFrom(_buyer, address(this), _value);
     }
 
