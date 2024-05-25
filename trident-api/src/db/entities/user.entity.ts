@@ -1,5 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-import { GameEntity } from "./game.entity";
 import { OrderEntity } from "./order.entity";
 
 @Entity({ name: 'users' })
