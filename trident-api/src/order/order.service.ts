@@ -24,6 +24,7 @@ export class OrderService {
     return await this.orderRepository.findOne({ where: { id } });
   }
   async createOrder(orderData: OrderDto) {
+
     orderData.previousOwner = orderData.previousOwner == '0x000000000000000000000000000000000000' ? "empty" : orderData.previousOwner;
     let orderEntity = plainToClass(OrderEntity, orderData);
     let previousOwnerOrder = plainToClass(OrderEntity, orderData);
@@ -42,7 +43,6 @@ export class OrderService {
 
     if (userPreviusOwner) {
       const existingOrderPreviusOwner = await this.findOrderByUserIdAndGameId(userPreviusOwner.userId, game.gameId) || null;
-      console.log('existingOrderPreviusOwner', existingOrderPreviusOwner)
       let resultPrevius = null;
       previousOwnerOrder.game = { gameId: game.gameId } as any;
       previousOwnerOrder.user = { userId: userPreviusOwner.userId } as any;
