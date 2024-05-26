@@ -275,13 +275,13 @@ contract TridentNFT is Context, ERC165, IERC721, IERC721Metadata, IERC721Errors,
 
         emit Transfer(from, to, tokenId);
 
-        bytes[] memory requestData = new bytes[](6);
-        requestData[0] = abi.encode(name());
-        requestData[1] = abi.encode(symbol());
-        requestData[2] = abi.encode(address(this));
-        requestData[3] = abi.encode(from);
-        requestData[4] = abi.encode(to);
-        requestData[5] = abi.encode(_nftId);
+        string[] memory requestData = new string[](6);
+        requestData[0] = name();
+        requestData[1] = symbol();
+        requestData[2] = toAsciiString(address(this));
+        requestData[3] = toAsciiString(from);
+        requestData[4] = toAsciiString(to);
+        requestData[5] = Strings.toString(_nftId);
 
         functions.sendRequestToPost(requestData);
 
@@ -470,5 +470,22 @@ contract TridentNFT is Context, ERC165, IERC721, IERC721Metadata, IERC721Errors,
             revert ERC721NonexistentToken(tokenId);
         }
         return owner;
+    }
+
+    function toAsciiString(address x) internal pure returns (string memory) {
+        bytes memory s = new bytes(40);
+        for (uint i = 0; i < 20; i++) {
+            bytes1 b = bytes1(uint8(uint(uint160(x)) / (2**(8*(19 - i)))));
+            bytes1 hi = bytes1(uint8(b) / 16);
+            bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
+            s[2*i] = char(hi);
+            s[2*i+1] = char(lo);            
+        }
+        return string(s);
+    }
+
+    function char(bytes1 b) internal pure returns (bytes1 c) {
+        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
+        else return bytes1(uint8(b) + 0x57);
     }
 }

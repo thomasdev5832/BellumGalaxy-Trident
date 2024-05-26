@@ -23,26 +23,40 @@ contract TridentFunctions is FunctionsClient, Ownable{
     ///////////////////////
     ///Type declarations///
     ///////////////////////
+    ///@notice 
     struct FunctionsResponse{
         bytes lastResponse;
         bytes lastError;
         bool exists;
     }
 
+    ///@notice 
     struct GameScore{
         bytes lastResponse;
         bytes lastError;
         bool exists;
         uint256 score;
     }
-    /////////////////////
-    ///State variables///
-    /////////////////////
+    
+    /////////////
+    ///Storage///
+    /////////////
+    ///@notice 
+    mapping(bytes32 requestId => FunctionsResponse) private s_responses;
+    ///@notice 
+    mapping(bytes32 requestId => GameScore) private s_responsesGet;
+    ///@notice 
+    mapping(address nftAddress => uint256 isAllowed) private s_allowedAddresses;
 
-    address endereco = 0x6f09A3ED4E1a231a34EA8d726b6c2a69207Dd379;
-
-    // @Update with protocol info.
-    string private constant SOURCE_POST =
+    ///////////////
+    ///CONSTANTS///
+    ///////////////
+    ///@notice 
+    uint256 private constant ONE = 1;
+    ///@notice 
+    uint32 private constant GAS_LIMIT = 300_000;
+    ///@notice 
+    string private constant SOURCE_POST = 
         "const name = args[0];"
         "const symbol = args[1];"
         "const gameAddress = args[2];"
@@ -50,56 +64,43 @@ contract TridentFunctions is FunctionsClient, Ownable{
         "const receiver = args[4];"
         "const nftId = args[5];"
         "const response = await Functions.makeHttpRequest({"
-        "url: http://64.227.122.74:3000/order"
-        "method: POST,"
-        "data:{gameAddress: `${gameAddress}`,"
-            "previousOwner: `${previousOwner}`,"
-            "receiver: `${receiver}`,"
-            "nftId: `${nftId}`,"
-            "gameName: `${name}`,"
-            "gameSymbol:`${symbol}`"
+        "url: `http://64.227.122.74:3000/order/gameAddress/${gameAddress}/previousOwner/${previousOwner}/receiver/${receiver}/nftId/${nftId}/gameName/${name}/gameSymbol/${symbol}`,"
+        "method: 'POST',"
         "});"
         "if (response.error) {"
-        "throw Error('Request failed');"
+        "  throw Error(`Request failed message ${response.message}`);"
         "}"
         "const { data } = response;"
         "return Functions.encodeString(data);"
     ;
-    
+    ///@notice 
     string private constant SOURCE_GET =
-        "const gameAddress = args[0];"
-        "const apiResponse = await Functions.makeHttpRequest({"
-        "url: `https://swapi.info/api/people/${characterId}/`"
-        "method: GET"
+        "const gameName = args[0];"
+        "const response = await Functions.makeHttpRequest({"
+        "url: `http://64.227.122.74:3000/score/name/${gameName}`,"
+        "method: 'GET',"
         "});"
-        "if (apiResponse.error) {"
-        "throw Error('Request failed');"
+        "if (response.error) {"
+        "  throw Error(`Request failed message ${response.message}`);"
         "}"
-        "const { data } = apiResponse;"
-        "return Functions.encodeUint(data.score);"
+        "const { data } = response;"
+        "return Functions.encodeString(data);"
     ;
-
-    mapping(bytes32 requestId => FunctionsResponse) private s_responses;
-    mapping(bytes32 requestId => GameScore) private s_responsesGet;
-    mapping(address nftAddress => uint256 isAllowed) private s_allowedAddresses;
-
-    ///////////////
-    ///CONSTANTS///
-    ///////////////
-    uint32 private constant GAS_LIMIT = 300_000;
-    uint256 private constant ONE = 1;
 
     ////////////////
     ///IMMUTABLES///
     ////////////////
-    //https://docs.chain.link/chainlink-functions/supported-networks
+    ///@notice 
     bytes32 private immutable i_donID;
+    ///@notice 
     uint64 private immutable i_subscriptionId;
 
     ////////////
     ///Events///
     ////////////
+    ///@notice 
     event TridentFunctions_Response(bytes32 indexed requestId, bytes response, bytes err);
+    ///@notice 
     event TridentFunctions_AllowedCallerContracts(address caller, uint256 isAllowed);
 
     ///////////////
@@ -113,6 +114,13 @@ contract TridentFunctions is FunctionsClient, Ownable{
     /////////////////
     ///constructor///
     /////////////////
+    /**
+     * 
+     * @param _router Chainlink Functions Router Address
+     * @param _donId Chainlink Functions DonId
+     * @param _subId Chainlink Functions Subscription Id
+     * @param _owner Chainlink Functions Contract Owner
+     */
     constructor(address _router, bytes32 _donId, uint64 _subId, address _owner) FunctionsClient(_router) Ownable(_owner) {
         i_donID = _donId;
         i_subscriptionId = _subId;
@@ -121,6 +129,11 @@ contract TridentFunctions is FunctionsClient, Ownable{
     //////////////
     ///external///
     //////////////
+    /**
+     * @notice function to updated contracts that can call the Chainlink Functions functionalities
+     * @param _caller Allowlisted caller
+     * @param _isAllowed 1 == true | Any other value false
+     */
     function setAllowedContracts(address _caller, uint256 _isAllowed) external onlyOwner{
         s_allowedAddresses[_caller] = _isAllowed;
 
@@ -129,19 +142,20 @@ contract TridentFunctions is FunctionsClient, Ownable{
 
     /**
      * @notice Sends an HTTP request for character information
-     * @param _bytesArgs The arguments to pass to the HTTP request
+     * @param _args The arguments to pass to the HTTP request
      * @return requestId The ID of the request
-     */
-    function sendRequestToPost(bytes[] memory _bytesArgs) external onlyOwner returns (bytes32 requestId) {
+    */
+    function sendRequestToPost(string[] memory _args) external returns(bytes32 requestId) {
         if(s_allowedAddresses[msg.sender] != ONE) revert TridentFunctions_CallerNotAllowed();
-        if(_bytesArgs.length < ONE) revert TridentFunctions_EmptyArgs();
+
+        if(_args.length < ONE) revert TridentFunctions_EmptyArgs();
 
         FunctionsRequest.Request memory req;
         // Initialize the request with JS code
         req.initializeRequestForInlineJavaScript(SOURCE_POST);
 
         // Set the arguments for the request
-        req.setBytesArgs(_bytesArgs);
+        req.setArgs(_args);
 
         // Send the request and store the request ID
         requestId = _sendRequest(
@@ -160,19 +174,19 @@ contract TridentFunctions is FunctionsClient, Ownable{
 
     /**
      * @notice Sends an HTTP request for character information
-     * @param _bytesArgs The arguments to pass to the HTTP request
+     * @param _args The arguments to pass to the HTTP request
      * @return requestId The ID of the request
      */
-    function sendRequestToGet(bytes[] memory _bytesArgs) external onlyOwner returns (bytes32 requestId) {
-        if(s_allowedAddresses[msg.sender] != ONE) revert TridentFunctions_CallerNotAllowed();
-        if(_bytesArgs.length < ONE) revert TridentFunctions_EmptyArgs();
+    function sendRequestToGet(string[] memory _args) external onlyOwner returns(bytes32 requestId) {
+        // if(s_allowedAddresses[msg.sender] != ONE) revert TridentFunctions_CallerNotAllowed();
+        if(_args.length < ONE) revert TridentFunctions_EmptyArgs();
 
         FunctionsRequest.Request memory req;
         // Initialize the request with JS code
         req.initializeRequestForInlineJavaScript(SOURCE_GET);
 
         // Set the arguments for the request
-        req.setBytesArgs(_bytesArgs);
+        req.setArgs(_args);
 
         // Send the request and store the request ID
         requestId = _sendRequest(
