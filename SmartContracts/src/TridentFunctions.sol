@@ -35,6 +35,7 @@ contract TridentFunctions is FunctionsClient, Ownable{
         bytes lastResponse;
         bytes lastError;
         bool exists;
+        string name;
         uint256 score;
     }
     
@@ -47,6 +48,8 @@ contract TridentFunctions is FunctionsClient, Ownable{
     mapping(bytes32 requestId => GameScore) private s_responsesGet;
     ///@notice 
     mapping(address nftAddress => uint256 isAllowed) private s_allowedAddresses;
+    ///@notice mapping to keep track of game score avaliation
+    mapping(string gameName => uint256[]) public s_dailyAvaliation;
 
     ///////////////
     ///CONSTANTS///
@@ -84,7 +87,7 @@ contract TridentFunctions is FunctionsClient, Ownable{
         "  throw Error(`Request failed message ${response.message}`);"
         "}"
         "const { data } = response;"
-        "return Functions.encodeString(data);"
+        "return Functions.encodeUint256(data.score);"
     ;
 
     ////////////////
@@ -200,10 +203,15 @@ contract TridentFunctions is FunctionsClient, Ownable{
             lastResponse: "",
             lastError: "",
             exists: true,
+            name: _args[0],
             score: 0
         });
     }
 
+    function getScoreDailyHistory(string memory _name) external view returns(uint256[] memory score){
+        score = s_dailyAvaliation[_name];
+    }
+    
     //////////////
     ///internal///
     //////////////
@@ -214,19 +222,21 @@ contract TridentFunctions is FunctionsClient, Ownable{
      * @param _err Any errors from the Functions request
     */
     function fulfillRequest(bytes32 _requestId, bytes memory _response, bytes memory _err) internal override {
-        if (s_responses[_requestId].exists == false ) revert TridentFunctions_UnexpectedRequestID(_requestId);
+        if (s_responses[_requestId].exists == false && s_responsesGet[_requestId].exists == false) revert TridentFunctions_UnexpectedRequestID(_requestId);
         
-        FunctionsResponse storage functions = s_responses[_requestId];
+        FunctionsResponse storage post = s_responses[_requestId];
         GameScore storage score = s_responsesGet[_requestId];
 
-        if(functions.exists == true){
+        if(post.exists == true){
             // Update the contract's state variables with the response and any errors
-            functions.lastResponse = _response;
-            functions.lastError = _err;
-        } else if(score.exists == true){
+            post.lastResponse = _response;
+            post.lastError = _err;
+        } else {
+            uint256 scoreNow = abi.decode(_response, (uint256));
             score.lastResponse = _response;
             score.lastError = _err;
-            score.score = abi.decode(_response, (uint256));
+            score.score = scoreNow;
+            s_dailyAvaliation[score.name].push(scoreNow);
         }
 
         emit TridentFunctions_Response(_requestId, _response, _err);

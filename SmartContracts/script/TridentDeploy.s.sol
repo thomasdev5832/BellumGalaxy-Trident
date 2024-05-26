@@ -42,7 +42,7 @@ contract TridentDeploy is Script {
     //Owner: 0xB015a6318f1D19DC3E135C8cEBa4bda00845c9Be
 
     //CCIP Router: 0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59
-    //Chain selector: 5224473277236331295
+    //Chain selector: 16015286601757825753
 //  Link: 0x779877A7B0D9E8603169DdbD7836e478b4624789
 
 //===============================================================================

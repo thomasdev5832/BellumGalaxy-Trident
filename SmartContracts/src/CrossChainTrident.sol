@@ -192,9 +192,10 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
         * @param _token The address of token to be sent
         * @param _amount The token amount
         * @return messageId The ID of the message that was sent.
+        * @dev decimals here are 6 because of USDC.
     */
     function sendAdminMessage(IERC20 _token, uint256 _amount) external payable onlyOwner returns (bytes32 messageId) {
-        messageId = _sendMessage("", _token, _amount *10**18);
+        messageId = _sendMessage("", _token, _amount *10**6);
     }
 
     //////////////////////////
