@@ -1,10 +1,11 @@
 import React from "react";
-import "../styles/Home.css";
+import "../styles/PagesCss/Home.css";
 import NavBar from "../components/NavBar";
 import Trident from "../assets/trident.png";
 import About from "./About";
 import Team from "./Team";
 import Faq from "./Faq";
+import Contact from "./Contact";
 
 function Home() {
   return (
@@ -41,6 +42,7 @@ function Home() {
       <About />
       <Team />
       <Faq />
+      <Contact />
     </>
   );
 }

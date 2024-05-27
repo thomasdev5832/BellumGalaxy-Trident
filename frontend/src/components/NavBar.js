@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import "../styles/NavBar.css";
+import "../styles/ComponentsCss/NavBar.css";
 import TridentName from "../assets/nametrident.png";
 
 function NavBar() {
@@ -37,7 +37,7 @@ function NavBar() {
           </a>
         </li>
         <li onClick={removeActive}>
-          <a href="#home" className="navLink">
+          <a href="#Contact" className="navLink">
             Contact
           </a>
         </li>

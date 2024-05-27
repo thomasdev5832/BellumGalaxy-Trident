@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/NavAbout.css";
+import "../styles/ComponentsCss/NavAbout.css";
 
 function NavAbout() {
   return (
@@ -7,16 +7,16 @@ function NavAbout() {
       <div className="navAbout">
         <ul className="menuAbout">
           <li className="pro">
-            <a href="">Protocols and Standards</a>
+            <a>Protocols and Standards</a>
           </li>
           <li className="tri">
-            <a href="">Trinsic Infrastrucutre</a>
+            <a>Trinsic Infrastrucutre</a>
           </li>
           <li className="app">
-            <a href="">Application Layer</a>
+            <a>Application Layer</a>
           </li>
           <li className="id">
-            <a href="">ID-tech Products</a>
+            <a>ID-tech Products</a>
           </li>
         </ul>
       </div>

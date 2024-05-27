@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import "../styles/Faq.css";
-import ImageDoctor from "../assets/imgDoctor.jpg";
+import "../styles/PagesCss/Faq.css";
 import Accordion from "../components/Accordion";
 
 import { questions } from "../components/ApiFaq";

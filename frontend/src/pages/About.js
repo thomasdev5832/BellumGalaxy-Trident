@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/About.css";
+import "../styles/PagesCss/About.css";
 import Digital from "../assets/digital.png";
 import NavAbout from "../components/NavAbout";
 
