@@ -82,10 +82,12 @@
 
 .cardContent .imageTeam {
   position: relative;
-  width: 150px;
-  height: 170px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
-  padding-top: 2em;
+  padding-top: 1em;
+  margin: 1.4em 0em 1.5em;
+  
 }
 
 .cardContent .imageTeam img {
@@ -97,7 +99,7 @@
 
 .cardContent .social-media {
   position: absolute;
-  top: 40px;
+  top: 60px;
   right: 20px;
   display: flex;
   flex-direction: column;
@@ -105,6 +107,7 @@
 }
 
 .cardContent .social-media a {
+  font-size: 22px;
   color: #fff;
   margin-top: 10px;
   cursor: pointer;

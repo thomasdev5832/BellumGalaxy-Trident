@@ -38,8 +38,8 @@
 .ContactContent .ContactImage img {
   align-items: center;
   justify-content: center;
-  width: 280px;
-  height: 280px;
+  width: 300px;
+  height: 300px;
 }
 
 .ContactContent .ContactSocial {
@@ -94,7 +94,7 @@
 
 .ContactContent .ContactWeb a {
   color: #ffffff;
-  font-size: 18px;
+  font-size: 16px;
   transition: 0.5s;
 }
 
@@ -105,26 +105,32 @@
 }
 
 
-@media screen and (max-width: 1300px) {
+@media screen and (max-width: 1200px) {
   .bodyContact {
     padding: 1em 2em 1em;
-    height: 130vh;
+    height: 140vh;
     max-width: 1300px;
   }
 
   .ContactContent .ContactImage img {
-    width: 180px;
-    height: 180px;
+    width: 300px;
+    height: 300px;
   }
 }
 
 @media screen and (max-width: 800px) {
 
   .bodyContact{
-    padding: 5em 2em 1.5em;
+    padding: 5em 2em 1em;
     height: 95vh;
     max-width: 450px;
   }
+
+  .ContactContent .ContactImage img {
+    width: 320px;
+    height: 320px;
+  }
+
   
   .ContactTitle {
     padding-bottom: 1.2em;

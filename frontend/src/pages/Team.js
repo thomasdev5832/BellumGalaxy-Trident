@@ -51,11 +51,6 @@ function Team() {
                   <div className="teamJob">
                     <h1 className="name">Patrick, o Barba</h1>
                     <h1 className="job">Blockchain Developer | Security Researcher | Bellum Galaxy Founder</h1>
-                    <p className="description">
-                      A front-end developer creates visually appealing and
-                      user-friendly interfaces, ensuring seamless interaction
-                      and responsive design for websites.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -67,18 +62,12 @@ function Team() {
                     <img src={require("../assets/foto_gabriel.png")} />
                   </div>
                   <div className="social-media">
-                    <a class="fa-brands fa-x-twitter" target="_blank" href="https://x.com/"/>
                     <a class="fa-brands fa-github" target="_blank" href="https://github.com/dejazz"/>
                     <a class="fa-brands fa-linkedin-in" target="_blank" href="https://www.linkedin.com/in/gabriel-muniz-schneider"/>
                   </div>
                   <div className="teamJob">
                     <h1 className="name">Gabriel Schneider</h1>
                     <h1 className="job">Full Stack Developer | Crawler Developer</h1>
-                    <p className="description">
-                      A front-end developer creates visually appealing and
-                      user-friendly interfaces, ensuring seamless interaction
-                      and responsive design for websites.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -97,11 +86,7 @@ function Team() {
                   <div className="teamJob">
                     <h1 className="name">Gabriel Thome</h1>
                     <h1 className="job">Full Stack Developer | Software Engineer</h1>
-                    <p className="description">
-                      A front-end developer creates visually appealing and
-                      user-friendly interfaces, ensuring seamless interaction
-                      and responsive design for websites.
-                    </p>
+                    
                   </div>
                 </div>
               </div>
@@ -120,11 +105,7 @@ function Team() {
                   <div className="teamJob">
                     <h1 className="name">Raffa Loffredo</h1>
                     <h1 className="job">Data Scientist | Blockchain Data Analyst</h1>
-                    <p className="description">
-                      A front-end developer creates visually appealing and
-                      user-friendly interfaces, ensuring seamless interaction
-                      and responsive design for websites.
-                    </p>
+                    
                   </div>
                 </div>
               </div>
@@ -143,11 +124,7 @@ function Team() {
                   <div className="teamJob">
                     <h1 className="name">Cayo Tarcisio</h1>
                     <h1 className="job">Frontend Developer | System Developer</h1>
-                    <p className="description">
-                      A front-end developer creates visually appealing and
-                      user-friendly interfaces, ensuring seamless interaction
-                      and responsive design for websites.
-                    </p>
+                    
                   </div>
                 </div>
               </div>
