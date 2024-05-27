@@ -25,7 +25,7 @@ export class OrderService {
   }
   async createOrder(orderData: OrderDto) {
 
-    orderData.previousOwner = orderData.previousOwner == '0x000000000000000000000000000000000000' ? "empty" : orderData.previousOwner;
+    orderData.previousOwner = orderData.previousOwner == '0000000000000000000000000000000000000' ? "empty" : orderData.previousOwner;
     let orderEntity = plainToClass(OrderEntity, orderData);
     let previousOwnerOrder = plainToClass(OrderEntity, orderData);
     let arrayReturn = [];

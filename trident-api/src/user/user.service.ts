@@ -20,6 +20,8 @@ export class UserService {
   }
 
   async createUser(userData: UserDto): Promise<UserDto> {
+    userData.walletId = userData.walletId.replace('0x','').toLowerCase()
+    console.log(userData.walletId)
     const newUser = await this.userRepository.create(userData);
     return this.userRepository.save(newUser);
   }
