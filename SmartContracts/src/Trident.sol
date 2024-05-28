@@ -276,7 +276,8 @@ contract Trident is CCIPReceiver, Ownable{
     }
 
     //remove
-    function dispatchCrossChainInfo(uint256 _gameId, uint64 _destinationChainId) external payable onlyOwner returns(bytes32 messageId){
+    function dispatchCrossChainInfo(uint256 _gameId, uint64 _destinationChainId) external payable onlyOwner returns(bytes32 messageId){       
+        if(address(s_gamesCreated[_gameId].keyAddress) == address(0)) revert Trident_NonExistantGame(address(0));
         
         GameInfos memory info = s_gamesInfo[_gameId];
 
@@ -340,7 +341,7 @@ contract Trident is CCIPReceiver, Ownable{
 
         s_ccipCounter = s_ccipCounter + 1;
 
-        if(any2EvmMessage.destTokenAmounts[0].amount < ONE){
+        if(any2EvmMessage.destTokenAmounts.length < ONE){
             (uint256 gameId, uint256 buyingTime, uint256 price, address gameReceiver) = abi.decode(any2EvmMessage.data, (uint256, uint256, uint256, address));
 
             GameRelease memory release = s_gamesCreated[gameId];
