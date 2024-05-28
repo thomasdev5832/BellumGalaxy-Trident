@@ -23,6 +23,7 @@ export class ScoreService {
     return this.scoreRepository.findOne({ where: { gameName } });
   }
   async createScore(scoreData: ScoreDto): Promise<ScoreEntity | undefined> {
+    console.log(scoreData)
     const score =  plainToClass(ScoreEntity, scoreData); 
     return await this.scoreRepository.save(score);
   }

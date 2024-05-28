@@ -10,7 +10,7 @@ export class ScoreDto {
     gameName: string;
 
     @IsNumber()
-    score: string;
+    score: number;
 
     @IsString()
     data: string;
