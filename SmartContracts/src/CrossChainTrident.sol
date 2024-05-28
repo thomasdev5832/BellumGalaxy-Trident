@@ -209,13 +209,13 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
     */
     function buyGame(uint256 _gameId, IERC20 _chosenToken, address _gameReceiver) external {
         //CHECKS
-        if(s_tokenAllowed[_chosenToken] != ONE) revert CrossChainTrident_TokenNotAllowed(_chosenToken);//@Test
+        if(s_tokenAllowed[_chosenToken] != ONE) revert CrossChainTrident_TokenNotAllowed(_chosenToken);
         
         GameInfos memory game = s_gamesInfo[_gameId];
 
-        if(block.timestamp < game.startingDate) revert CrossChainTrident_GameNotAvailableYet(block.timestamp, game.startingDate);//@Test
+        if(block.timestamp < game.startingDate) revert CrossChainTrident_GameNotAvailableYet(block.timestamp, game.startingDate);
 
-        if(_chosenToken.balanceOf(msg.sender) < game.price ) revert CrossChainTrident_NotEnoughBalance(game.price);//@Test
+        if(_chosenToken.balanceOf(msg.sender) < game.price ) revert CrossChainTrident_NotEnoughBalance(game.price);
 
         address buyer = msg.sender;
 
@@ -244,26 +244,40 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
 
     function _sendMessage(bytes memory _text, IERC20 _token, uint256 _amount) private returns(bytes32 messageId) {
         Client.EVMTokenAmount[] memory tokenAmounts = new Client.EVMTokenAmount[](1);
+        
+        Client.EVM2AnyMessage memory evm2AnyMessage;
 
-        Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({
-            token: address(_token),
-            amount: _amount
-        });
+        if(_amount > 0){
 
-        tokenAmounts[0] = tokenAmount;
+            Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({
+                token: address(_token),
+                amount: _amount
+            });
 
-        Client.EVM2AnyMessage memory evm2AnyMessage = Client.EVM2AnyMessage({
-            receiver: abi.encode(s_mainContractAddress),
-            data: _text,
-            tokenAmounts: tokenAmounts,
-            extraArgs: Client._argsToBytes(
-                Client.EVMExtraArgsV1({gasLimit: 500_000})
-            ),
-            feeToken: address(i_linkToken)
-        });
+            tokenAmounts[0] = tokenAmount;
+
+            evm2AnyMessage = Client.EVM2AnyMessage({
+                receiver: abi.encode(s_mainContractAddress),
+                data: _text,
+                tokenAmounts: tokenAmounts,
+                extraArgs: Client._argsToBytes(
+                    Client.EVMExtraArgsV1({gasLimit: 500_000})
+                ),
+                feeToken: address(i_linkToken)
+            });
+        } else {
+            evm2AnyMessage = Client.EVM2AnyMessage({
+                receiver: abi.encode(s_mainContractAddress),
+                data: _text,
+                tokenAmounts: new Client.EVMTokenAmount[](0),
+                extraArgs: Client._argsToBytes(
+                    Client.EVMExtraArgsV1({gasLimit: 500_000})
+                ),
+                feeToken: address(i_linkToken)
+            });
+        }
 
         uint256 fees = i_router.getFee(i_destinationChainSelector, evm2AnyMessage);
-
 
         if (fees > i_linkToken.balanceOf(address(this))) revert CrossChainTrident_NotEnoughLinkBalance(i_linkToken.balanceOf(address(this)), fees);
 

@@ -98,13 +98,15 @@ contract Trident is CCIPReceiver, Ownable{
     ///@notice magic number removal
     uint256 private constant ONE = 1;
     ///@notice magic number removal
-    uint256 private constant DECIMALS = 10**18;
+    uint256 private constant DECIMALS = 10**6;
 
 
     ///@notice link token contract address
     LinkTokenInterface private immutable i_link;
     ///@notice CCIP router address
     IRouterClient private immutable i_router;
+    ///@notice functions constract instance
+    TridentFunctions private immutable i_functions;
 
     ///////////////////////
     /// STATE VARIABLES ///
@@ -112,8 +114,6 @@ contract Trident is CCIPReceiver, Ownable{
     uint256 private s_gameIdCounter;
     uint256 private s_ccipCounter;
 
-    ///@notice functions constract instance
-    TridentFunctions private s_functions;
 
     string[] private scoreCheck;
 
@@ -171,7 +171,7 @@ contract Trident is CCIPReceiver, Ownable{
     ///CONSTRUCTOR///
     /////////////////
     constructor(address _owner, TridentFunctions _functionsAddress, IRouterClient _router, LinkTokenInterface _link) CCIPReceiver(address(_router)) Ownable(_owner){
-        s_functions = _functionsAddress;
+        i_functions = _functionsAddress;
         i_link = _link;
         i_router = _router;
     }
@@ -220,15 +220,6 @@ contract Trident is CCIPReceiver, Ownable{
         emit Trident_CrossChainReceiverUpdated(_destinationChainId, _receiver);
     }
 
-    //@test
-    function manageFunctionsContract(address _functions) external onlyOwner{
-        address previousAddress = address(s_functions);
-
-        s_functions = TridentFunctions(_functions);
-
-        emit Trident_FunctionsAddressUpdated(previousAddress, _functions);
-    }
-
     /**
         *@notice Function for Publisher to create a new game NFT
         *@param _gameSymbol game's identifier
@@ -254,9 +245,9 @@ contract Trident is CCIPReceiver, Ownable{
 
         s_gamesCreated[s_gameIdCounter].keyAddress = new TridentNFT(_gameName, _gameSymbol, address(this));
 
-        s_gamesCreated[s_gameIdCounter].keyAddress.setFunctionsContract(address(s_functions));
+        s_gamesCreated[s_gameIdCounter].keyAddress.setFunctionsContract(address(i_functions));
 
-        s_functions.setAllowedContracts(address(s_gamesCreated[s_gameIdCounter].keyAddress), 1);
+        i_functions.setAllowedContracts(address(s_gamesCreated[s_gameIdCounter].keyAddress), 1);
     }
 
     /**
@@ -285,7 +276,8 @@ contract Trident is CCIPReceiver, Ownable{
     }
 
     //remove
-    function dispatchCrossChainInfo(uint256 _gameId, uint64 _destinationChainId) external payable onlyOwner returns(bytes32 messageId){
+    function dispatchCrossChainInfo(uint256 _gameId, uint64 _destinationChainId) external payable onlyOwner returns(bytes32 messageId){       
+        if(address(s_gamesCreated[_gameId].keyAddress) == address(0)) revert Trident_NonExistantGame(address(0));
         
         GameInfos memory info = s_gamesInfo[_gameId];
 
@@ -297,15 +289,16 @@ contract Trident is CCIPReceiver, Ownable{
 
     function gameScoreGetter() external {
         //need to whitelist caller
-
         uint256 gamesNumber = scoreCheck.length;
+
         if(gamesNumber < ONE) revert Trident_GameNotCreatedYet();
+
         for(uint256 i; i < gamesNumber; ++i){
             string[] memory args = new string[](1);
 
             args[0] = scoreCheck[i];
 
-            s_functions.sendRequestToGet(args);
+            i_functions.sendRequestToGet(args);
         }
     }
 
@@ -348,7 +341,7 @@ contract Trident is CCIPReceiver, Ownable{
 
         s_ccipCounter = s_ccipCounter + 1;
 
-        if(any2EvmMessage.destTokenAmounts[0].amount < ONE){
+        if(any2EvmMessage.destTokenAmounts.length < ONE){
             (uint256 gameId, uint256 buyingTime, uint256 price, address gameReceiver) = abi.decode(any2EvmMessage.data, (uint256, uint256, uint256, address));
 
             GameRelease memory release = s_gamesCreated[gameId];
