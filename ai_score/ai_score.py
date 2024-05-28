@@ -1,108 +1,99 @@
 # -*- coding: utf-8 -*-
 import requests
-
-# informar dados da conta
-api_key =
-
-# texto de pesquisa
-search_query = 'fifa24'
-
-# formato da pesquisa / limitado a 50 respostas
-api_url = 'https://api.social-searcher.com/v2/search?q={}&limit=50&key={}'.format(search_query, api_key)
-
-# chamadar API
-response = requests.get(api_url)
-
-# verificar se a chamada foi bem-sucedida
-if response.status_code == 200:
-    # obter dados JSON
-    data = response.json()
-    print('Dados obtidos com sucesso!')
-    print(data)
-else:
-    print(f'Erro ao obter dados: {response.status_code}')
-
-# criar função para extrair as informações necessárias
-def extrair_info(post):
-    return {
-        'date': post['posted'],
-        'social_network': post['network'],
-        'user': post['user'],
-        'content': post['text']
-    }
-
-# extrair informações dos posts
-posts_filtrados = [extrair_info(post) for post in data['posts']]
-
-# mostrar resultados filtrados
-for post in posts_filtrados:
-    print(post)
-
-# instalar OpenAI
-!pip install openai==0.28 -q
-
+import json
 import openai
+import uuid
 from datetime import datetime
+from env import *
+from send_score_to_api import HttpRequester
 
-# configurar chave de API
-api_key =
-openai.api_key = api_key
+class Score:
 
-# criar função para análise de sentimento
-def chat_with_gpt(prompt, api_key):
-    openai.api_key = api_key
-    # configurar chamada de API
-    prompt = 'Verifique se o texto indicado em "review de jogo" expressa uma opinião. Se expressar prossiga com a avaliação de sentimento abaixo. Se não expressar, ignore o conteúdo em "review de jogo" e encerre esse prompt.Avalie o sentimento do seguinte review de jogo, atribuindo uma nota inteira entre 0 e 5, onde 0 representa uma avaliação muito negativa e 5 representa uma avaliação excelente. Muita atenção: A resposta deve ser um número único, sem nenhum comentário adicionais, por exemplo: 5. Review de Jogo: {}. Instruções para o modelo de análise de sentimentos: Considere o tom geral do texto, a presença de palavras positivas ou negativas e a intensidade das opiniões expressas. Avalie o contexto específico do jogo mencionado no review, como a jogabilidade, gráficos, história e desempenho técnico. Atribua uma nota de 0 a 5, sendo 0 a mais negativa e 5 a mais positiva. Por exemplo: Nota 0: O review expressa um sentimento extremamente negativo, com múltiplas críticas severas e sem aspectos positivos. Nota 1: O review contém várias críticas negativas importantes, com poucos ou nenhum aspecto positivo. Nota 2: O review é mais negativo do que positivo, com algumas críticas e poucos elogios. Nota 3: O review é misto, contendo tanto aspectos positivos quanto negativos. Nota 4: O review é principalmente positivo, com várias qualidades elogiadas e poucas críticas. Nota 5: O review é extremamente positivo, elogiando amplamente o jogo sem críticas significativas.'.format(review)
-    response = openai.ChatCompletion.create(
-        model = 'gpt-3.5-turbo',
-        messages=[{'role': 'system', 'content': 'Você é um assistente de análise de sentimentos de reviews de jogos.'},
-                  {'role': 'user', 'content': prompt}]
-    )
-    return response.choices[0].message['content']
+    def __init__(self):
+        self.social_searcher_url = SOCIAL_REACHER_BASE_URL
+        self.api_reacher_key = f"{SOCIAL_REACHER}"
+        self.openai_api_key = f"{OPENAI_KEY}"
+        self.search_query = ['fifa24']
+        self.posts_filtered = []
+        self.current_date = datetime.now().strftime('%d-%m-%Y')
+        self.rate_list = []
+        self.data_list = []
 
-# obter data atual formatada
-current_date = datetime.now().strftime('%d-%m-%Y')
+    def get_social_searcher(self):
+        for query in self.search_query:
+            api_url = f"{self.social_searcher_url}?q={query}&limit=10&key={self.api_reacher_key}"
+            response = requests.get(api_url)
+            if response.status_code == 200:
+                data = response.json()
+                self.posts_filtered = [self.extract_infos(post) for post in data['posts']]
+            else:
+                print(f'Erro ao obter dados: {response.status_code}')
+    def extract_infos(self,post):
+        return {
+            'date': post['posted'],
+            'social_network': post['network'],
+            'user': post['user'],
+            'content': post['text']
+        }
 
-# criar arquivo de saída
-output_file = '{}_{}_posts.txt'.format(search_query, current_date)
+    def chat_with_gpt(self,review):
+        openai.api_key = self.openai_api_key
+        # configurar chamada de API
+        prompt = 'Verifique se o texto indicado em "review de jogo" expressa uma opinião. Se expressar prossiga com a avaliação de sentimento abaixo. Se não expressar, ignore o conteúdo em "review de jogo" e encerre esse prompt.Avalie o sentimento do seguinte review de jogo, atribuindo uma nota inteira entre 0 e 5, onde 0 representa uma avaliação muito negativa e 5 representa uma avaliação excelente. Muita atenção: A resposta deve ser um número único, sem nenhum comentário adicionais, por exemplo: 5. Review de Jogo: {}. Instruções para o modelo de análise de sentimentos: Considere o tom geral do texto, a presença de palavras positivas ou negativas e a intensidade das opiniões expressas. Avalie o contexto específico do jogo mencionado no review, como a jogabilidade, gráficos, história e desempenho técnico. Atribua uma nota de 0 a 5, sendo 0 a mais negativa e 5 a mais positiva. Por exemplo: Nota 0: O review expressa um sentimento extremamente negativo, com múltiplas críticas severas e sem aspectos positivos. Nota 1: O review contém várias críticas negativas importantes, com poucos ou nenhum aspecto positivo. Nota 2: O review é mais negativo do que positivo, com algumas críticas e poucos elogios. Nota 3: O review é misto, contendo tanto aspectos positivos quanto negativos. Nota 4: O review é principalmente positivo, com várias qualidades elogiadas e poucas críticas. Nota 5: O review é extremamente positivo, elogiando amplamente o jogo sem críticas significativas.'.format(
+            review)
+        response = openai.ChatCompletion.create(
+            model='gpt-3.5-turbo',
+            messages=[
+                {'role': 'system', 'content': 'Você é um assistente de análise de sentimentos de reviews de jogos.'},
+                {'role': 'user', 'content': prompt}]
+        )
+        return response.choices[0].message['content']
 
-# criar variável para salvar notas de sentimento
-rate_list = []
+    def save_results_score(self):
+        for post in self.posts_filtered:
+            review = post['content']
+            rate = self.chat_with_gpt(review)
 
-# salvar os resultados filtrados com notas de sentimentos em um arquivo .txt
-with open(output_file, 'w', encoding='utf-8') as file:
-    for post in posts_filtrados:
-        # analisar o sentimento do conteúdo e dar uma nota
-        review = post['content']
-        rate = chat_with_gpt(review, api_key)
+            try:
+                rate_value = float(rate.strip())
+                self.rate_list.append(rate_value)
+                self.data_list.append({
+                    'Date': post['date'],
+                    'Social_Network': post['social_network'],
+                    'User': post['user'],
+                    'Content': review,
+                    'Sentiment Score': rate,
+                })
+            except ValueError:
+                print('Valor inválido de "rate": {}. Ignorado.'.format(rate))
+                continue
 
-        # adicionar valor do rate em 'rate_list'
-        try:
-            rate_value = float(rate.strip())
-            rate_list.append(rate_value)
-        except ValueError:
-            print('Valor inválido de "rate": {}. Ignorado.'.format(rate))
-            continue
+    def mount_payload(self):
+        average_rate = sum(self.rate_list) / len(self.rate_list)
+        print('A média das notas de sentimento é: {:.2f}'.format(average_rate))
+        payload = {
+            'id': f"{uuid.uuid4()}",
+            'data':self.data_list,
+            'score': average_rate,
+            'gameName': self.search_query[0]
+        }
 
-        # escrever os dados no arquivo com a nota de sentimento
-        file.write('Date: {}\n'.format(post['date']))
-        file.write('Social Network: {}\n'.format(post['social_network']))
-        file.write('User: {}\n'.format(post['user']))
-        file.write('Content: {}\n'.format(review))
-        file.write('Sentiment Score: {}\n'.format(rate))
-        file.write('\n' + '-' * 40 + '\n\n')
+        return json.dumps(payload)
 
-print('Resultados salvos no arquivo {}'.format(output_file))
+    def send_request_for_api(self):
+        payload = self.mount_payload()
+        http_requester = HttpRequester()
+        http_requester.post(data=payload)
 
-# calcular a média das notas de sentimento e salvar em um txt
+    def run(self):
 
-# criar arquivo de saída
-output_file = '{}_{}_average_rate.txt'.format(search_query, current_date)
+        self.get_social_searcher()
+        self.save_results_score()
+        self.send_request_for_api()
 
-with open(output_file, 'w', encoding='utf-8') as file:
-    average_rate = sum(rate_list) / len(rate_list)
 
-    # escrever os dados no arquivo com a nota de sentimento
-    file.write('{:.1f}'.format(average_rate))
 
-print('A média das notas de sentimento é: {:.2f}'.format(average_rate))
+run_crawler = Score()
+run_crawler.run()
+#chamando classe para salvar no banco
+
