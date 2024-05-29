@@ -1,11 +1,45 @@
-# BlockMagic-Trident
+# <p align="center"> TRIDENT
 
-# 1st Draft
+</p>
+
+<p align="center"> Chainlink Block Magic Hackathon
+</p>
+</br>
+
+<p align="center">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjvVyyrK-60mygjEoVWPlaox2JNp_XS3eXWxOfFej7FUxpEfS6oU4O_GIdsUzgn1421NP5XGlxb8CmveXASq8k2XyF3eOyZ2FtbRNH6ma_QEF3sN6zsaNnDwipgEJDuYnOtSNdxPe5ON-1tV-ZDwVZBU1ZyMfGgEuWjg7KrBPcm2XAfnAifwOW5SXa7bX4/s320/trident-logo.png">
+</p>
+</br>
+
+### Links
+- Pitch deck video presentation is available on [YouTube]()
+- Live demo [website]()
+- [Slide]() presentation
+
+</br>
+
+### About Bellum Galaxy
+We are an educational, scientific, and technological community, focused on breaking barriers and demystifying technology. Our mission is to empower individuals by providing learning and development opportunities, where contributions fuel innovation and drive positive change.
+
+</br>
+
+<p align="center">
+  <img width="20%" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjDzC6qHOPXlQGVwQsz9J8IyLkIzbGDPkz08C7dzO06VeKkmluZJ0ollUVgwwvjteBLIPRn0BsZxJGr8S4Tfov7s5Oc8M8nxsTHa4VxamXvW5KGhXfbnVrkL5kESHmag0URch49nz0BTjGL3GbtqMXO0ULYhJbUSQfi2hmSNinyyUVmZyw_ZWBCpdRh5_Q/s16000/Logo-BG-1-semfundo.png">
+</p>
+</br>
+
+Join us on [Discord](https://discord.com/invite/H2UpdzbbRJ) and together, we shape the future with blockchain technology.
+
+</br>
+
+### Summary
+
+
+-----------------------------------------------------------
+
 
 ## About Bellum Galaxy
-Breve introdução sobre a BG.
 ~ Colocar a logo aqui.
-Contatos
 
 # Trident
 ~ Colocar a logo aqui. Path: Bellum Galaxy / Projetos / Trident / Logo
