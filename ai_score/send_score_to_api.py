@@ -9,10 +9,8 @@ class HttpRequester:
 
     def post(self, data):
      try:
-        response = self.req.post(url=self.url, data=data)
-        if response.status_code != 200:
-            print(f'Requisição retornou status != de 200. {response}')
-            return False
+        response = self.req.post(url=self.url, json=data)
+        print(f'Requisição retornou status {response.status_code}. {response.json()}')
         return json.loads(response.text) or ""
 
      except Exception as e:
