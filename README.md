@@ -34,17 +34,45 @@ Join us on [Discord](https://discord.com/invite/H2UpdzbbRJ) and together, we sha
 
 ### Summary
 
+1. [Introduction]()
+   
+2. Trident Protocol
 
------------------------------------------------------------
+   2.1. The Prototype
 
+3. Tools Used
 
-## About Bellum Galaxy
-~ Colocar a logo aqui.
+   3.1. Chainlink VRF - Verifiable Random Function
 
-# Trident
-~ Colocar a logo aqui. Path: Bellum Galaxy / Projetos / Trident / Logo
+   3.2. Chainlink CCIP - Cross-Chain Interoperability Protocol
 
-## Introduction
+   3.3. Chainlink Functions
+
+   3.4. Chainlink Automation - Chainlink’s hyper-reliable Automation network
+
+   3.5. [Chainlink Tools Summary Table]()
+
+   3.6. API - Application Programming Interface
+
+   3.7. Artificial Intelligence with OpenAI
+
+4. Operation
+
+5. Cost Projection
+
+6. Evolution of the Protocol
+
+7.  Conclusion
+
+8. Developer Session
+
+9. [Meet the Team]()
+
+</br>
+
+---
+
+</br>
 
 ## Problem
 
@@ -91,12 +119,10 @@ Valor arrecadado por Desenvolvedoras
   - DBs
   - Ferramentas
 
-## Trident Team
-|Nome   | Profissão | Linkedin | X/Twitter | GitHub |     
+## Meet the Team
+|Name   | Title | Linkedin | X/Twitter | GitHub |     
 |-------|-----------|----------|-----------|--------|
 | Barba | Solidity Developer & Security Researcher | [Link](https://www.linkedin.com/in/i3arba/) | [Link](x.com/i3arba) | [Link](https://github.com/i3arba) |
 | Raffa | Data Scientist & Blockchain Analyst | [Link](https://www.linkedin.com/in/raffaela-loffredo/) | [Link](https://twitter.com/loffredods) | [Link](https://github.com/raffaloffredo) |
-| Gabriel | Crawler, Python, Node.js, C# Developer | [Link](https://www.linkedin.com/in/gabriel-muniz-schneider/) | N/A | [Link](https://github.com/dejazz) |
-| Cayo | Frontend Developer | [Link](https://www.linkedin.com/in/cayo-morais-070b721b9/) | N/A | [Link](https://github.com/CayoTarcisio) |
-
-## Convite a novos membros
+| Gabriel | Crawler, Python, Node.js, C# Developer | [Link](https://www.linkedin.com/in/gabriel-muniz-schneider/) | - | [Link](https://github.com/dejazz) |
+| Cayo | Frontend Developer | [Link](https://www.linkedin.com/in/cayo-morais-070b721b9/) | - | [Link](https://github.com/CayoTarcisio) |
