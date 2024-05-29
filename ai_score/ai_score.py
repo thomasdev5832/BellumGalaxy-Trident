@@ -76,7 +76,7 @@ class Score:
             # 'data': json.dumps(self.data_list),
             'data': '',
             'score': int(average_rate),
-            'gameName': self.search_query[0]
+            'gameName': "Bellum Galaxy Game"
         }
         return payload
 
