@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Game from '../components/Game';
 import '../styles/Store.css';
+import { useReadContract } from 'wagmi';
+import tridentAbi from '../utils/Trident.json';
 
 import gameImage1 from '../assets/game-images/game-01.jpg';
 import gameImage2 from '../assets/game-images/game-02.jpg';
@@ -16,7 +18,15 @@ import gameImage11 from '../assets/game-images/game-11.jpg';
 import gameImage12 from '../assets/game-images/game-12.jpg';
 
 function Store() {
-  
+  const result = useReadContract({
+    tridentAbi,
+    address: '0xF7bB747345A4b40548e6b42aAf09eEd9AE1eD4E5',
+    functionName: 'getGamesCreated',
+    args: [1]
+  });
+
+  console.log(result);
+
   const featuredGames = [
     { 
       title: 'STAR WARS Jedi: Fallen Order™', 
@@ -164,7 +174,6 @@ function Store() {
       clearInterval(interval);
     };
   }, [currentSlide]); // Dependência para reiniciar o intervalo quando currentSlide muda
-
 
 
   return (
