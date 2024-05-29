@@ -1,0 +1,841 @@
+[
+    {
+      "type": "constructor",
+      "inputs": [
+        { "name": "_owner", "type": "address", "internalType": "address" },
+        {
+          "name": "_functionsAddress",
+          "type": "address",
+          "internalType": "contract TridentFunctions"
+        },
+        {
+          "name": "_router",
+          "type": "address",
+          "internalType": "contract IRouterClient"
+        },
+        {
+          "name": "_link",
+          "type": "address",
+          "internalType": "contract LinkTokenInterface"
+        }
+      ],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "buyGame",
+      "inputs": [
+        { "name": "_gameId", "type": "uint256", "internalType": "uint256" },
+        {
+          "name": "_chosenToken",
+          "type": "address",
+          "internalType": "contract ERC20"
+        },
+        {
+          "name": "_gameReceiver",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "ccipReceive",
+      "inputs": [
+        {
+          "name": "message",
+          "type": "tuple",
+          "internalType": "struct Client.Any2EVMMessage",
+          "components": [
+            {
+              "name": "messageId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+            },
+            {
+              "name": "sourceChainSelector",
+              "type": "uint64",
+              "internalType": "uint64"
+            },
+            { "name": "sender", "type": "bytes", "internalType": "bytes" },
+            { "name": "data", "type": "bytes", "internalType": "bytes" },
+            {
+              "name": "destTokenAmounts",
+              "type": "tuple[]",
+              "internalType": "struct Client.EVMTokenAmount[]",
+              "components": [
+                {
+                  "name": "token",
+                  "type": "address",
+                  "internalType": "address"
+                },
+                {
+                  "name": "amount",
+                  "type": "uint256",
+                  "internalType": "uint256"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "createNewGame",
+      "inputs": [
+        { "name": "_gameSymbol", "type": "string", "internalType": "string" },
+        { "name": "_gameName", "type": "string", "internalType": "string" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "dispatchCrossChainInfo",
+      "inputs": [
+        { "name": "_gameId", "type": "uint256", "internalType": "uint256" },
+        {
+          "name": "_destinationChainId",
+          "type": "uint64",
+          "internalType": "uint64"
+        }
+      ],
+      "outputs": [
+        { "name": "messageId", "type": "bytes32", "internalType": "bytes32" }
+      ],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "gameScoreGetter",
+      "inputs": [],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "getAllowedCrossChainReceivers",
+      "inputs": [
+        {
+          "name": "_destinationChainId",
+          "type": "uint64",
+          "internalType": "uint64"
+        }
+      ],
+      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getAllowedTokens",
+      "inputs": [
+        {
+          "name": "_tokenAddress",
+          "type": "address",
+          "internalType": "contract ERC20"
+        }
+      ],
+      "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getClientRecords",
+      "inputs": [
+        { "name": "_client", "type": "address", "internalType": "address" }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple[]",
+          "internalType": "struct Trident.ClientRecord[]",
+          "components": [
+            { "name": "gameName", "type": "string", "internalType": "string" },
+            {
+              "name": "game",
+              "type": "address",
+              "internalType": "contract TridentNFT"
+            },
+            {
+              "name": "buyingDate",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "paidValue",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getGamesCreated",
+      "inputs": [
+        { "name": "_gameId", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct Trident.GameRelease",
+          "components": [
+            {
+              "name": "gameSymbol",
+              "type": "string",
+              "internalType": "string"
+            },
+            { "name": "gameName", "type": "string", "internalType": "string" },
+            {
+              "name": "keyAddress",
+              "type": "address",
+              "internalType": "contract TridentNFT"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getGamesInfo",
+      "inputs": [
+        { "name": "_gameId", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct Trident.GameInfos",
+          "components": [
+            {
+              "name": "sellingDate",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            { "name": "price", "type": "uint256", "internalType": "uint256" },
+            {
+              "name": "copiesSold",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getLastReceivedMessageDetails",
+      "inputs": [
+        { "name": "_messageId", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct Trident.CCIPInfos",
+          "components": [
+            {
+              "name": "lastReceivedMessageId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+            },
+            {
+              "name": "sourceChainSelector",
+              "type": "uint64",
+              "internalType": "uint64"
+            },
+            {
+              "name": "lastReceivedTokenAddress",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "lastReceivedAmount",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getRouter",
+      "inputs": [],
+      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getScoreChecker",
+      "inputs": [],
+      "outputs": [
+        { "name": "", "type": "string[]", "internalType": "string[]" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "manageAllowedTokens",
+      "inputs": [
+        {
+          "name": "_tokenAddress",
+          "type": "address",
+          "internalType": "contract ERC20"
+        },
+        { "name": "_isAllowed", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "manageCCIPAllowlist",
+      "inputs": [
+        {
+          "name": "_sourceChainSelector",
+          "type": "uint64",
+          "internalType": "uint64"
+        },
+        { "name": "_sender", "type": "address", "internalType": "address" },
+        { "name": "_isAllowed", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "manageCrossChainReceiver",
+      "inputs": [
+        {
+          "name": "_destinationChainId",
+          "type": "uint64",
+          "internalType": "uint64"
+        },
+        { "name": "_receiver", "type": "address", "internalType": "address" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "owner",
+      "inputs": [],
+      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "renounceOwnership",
+      "inputs": [],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "s_allowlistedSourceChainsAndSenders",
+      "inputs": [
+        { "name": "chainID", "type": "uint64", "internalType": "uint64" },
+        { "name": "sender", "type": "address", "internalType": "address" }
+      ],
+      "outputs": [
+        { "name": "allowed", "type": "uint256", "internalType": "uint256" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "setReleaseConditions",
+      "inputs": [
+        { "name": "_gameId", "type": "uint256", "internalType": "uint256" },
+        {
+          "name": "_startingDate",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        { "name": "_price", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "supportsInterface",
+      "inputs": [
+        { "name": "interfaceId", "type": "bytes4", "internalType": "bytes4" }
+      ],
+      "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+      "stateMutability": "pure"
+    },
+    {
+      "type": "function",
+      "name": "transferOwnership",
+      "inputs": [
+        { "name": "newOwner", "type": "address", "internalType": "address" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "event",
+      "name": "OwnershipTransferred",
+      "inputs": [
+        {
+          "name": "previousOwner",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "newOwner",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Trident_AllowedTokensUpdated",
+      "inputs": [
+        {
+          "name": "tokenName",
+          "type": "string",
+          "indexed": false,
+          "internalType": "string"
+        },
+        {
+          "name": "tokenSymbol",
+          "type": "string",
+          "indexed": false,
+          "internalType": "string"
+        },
+        {
+          "name": "tokenAddress",
+          "type": "address",
+          "indexed": false,
+          "internalType": "contract ERC20"
+        },
+        {
+          "name": "isAllowed",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Trident_CCIPAllowlistUpdated",
+      "inputs": [
+        {
+          "name": "sourceChainSelector",
+          "type": "uint64",
+          "indexed": false,
+          "internalType": "uint64"
+        },
+        {
+          "name": "sender",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        },
+        {
+          "name": "allowed",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Trident_CrossChainReceiverUpdated",
+      "inputs": [
+        {
+          "name": "destinationChainId",
+          "type": "uint64",
+          "indexed": false,
+          "internalType": "uint64"
+        },
+        {
+          "name": "receiver",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Trident_FunctionsAddressUpdated",
+      "inputs": [
+        {
+          "name": "previousAddress",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        },
+        {
+          "name": "functionsAddress",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Trident_MessageReceived",
+      "inputs": [
+        {
+          "name": "messageId",
+          "type": "bytes32",
+          "indexed": false,
+          "internalType": "bytes32"
+        },
+        {
+          "name": "sourceChainSelector",
+          "type": "uint64",
+          "indexed": false,
+          "internalType": "uint64"
+        },
+        {
+          "name": "sender",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Trident_MessageSent",
+      "inputs": [
+        {
+          "name": "messageId",
+          "type": "bytes32",
+          "indexed": false,
+          "internalType": "bytes32"
+        },
+        {
+          "name": "destinationChainSelector",
+          "type": "uint64",
+          "indexed": false,
+          "internalType": "uint64"
+        },
+        {
+          "name": "receiver",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        },
+        {
+          "name": "permission",
+          "type": "bytes",
+          "indexed": false,
+          "internalType": "bytes"
+        },
+        {
+          "name": "feeToken",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        },
+        {
+          "name": "fees",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Trident_NewGameCreated",
+      "inputs": [
+        {
+          "name": "gameId",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        },
+        {
+          "name": "tokenSymbol",
+          "type": "string",
+          "indexed": false,
+          "internalType": "string"
+        },
+        {
+          "name": "gameName",
+          "type": "string",
+          "indexed": false,
+          "internalType": "string"
+        },
+        {
+          "name": "tridentNFT",
+          "type": "address",
+          "indexed": false,
+          "internalType": "contract TridentNFT"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Trident_NewGameSold",
+      "inputs": [
+        {
+          "name": "gameId",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        },
+        {
+          "name": "gameName",
+          "type": "string",
+          "indexed": false,
+          "internalType": "string"
+        },
+        {
+          "name": "payer",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        },
+        {
+          "name": "date",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        },
+        {
+          "name": "gameReceiver",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Trident_ReleaseConditionsSet",
+      "inputs": [
+        {
+          "name": "gameId",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        },
+        {
+          "name": "startingDate",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        },
+        {
+          "name": "price",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "error",
+      "name": "AddressEmptyCode",
+      "inputs": [
+        { "name": "target", "type": "address", "internalType": "address" }
+      ]
+    },
+    { "type": "error", "name": "FailedCall", "inputs": [] },
+    {
+      "type": "error",
+      "name": "InsufficientBalance",
+      "inputs": [
+        { "name": "balance", "type": "uint256", "internalType": "uint256" },
+        { "name": "needed", "type": "uint256", "internalType": "uint256" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "InvalidRouter",
+      "inputs": [
+        { "name": "router", "type": "address", "internalType": "address" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "OwnableInvalidOwner",
+      "inputs": [
+        { "name": "owner", "type": "address", "internalType": "address" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "OwnableUnauthorizedAccount",
+      "inputs": [
+        { "name": "account", "type": "address", "internalType": "address" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "SafeERC20FailedOperation",
+      "inputs": [
+        { "name": "token", "type": "address", "internalType": "address" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_GameNotAvailableYet",
+      "inputs": [
+        { "name": "timeNow", "type": "uint256", "internalType": "uint256" },
+        { "name": "releaseTime", "type": "uint256", "internalType": "uint256" }
+      ]
+    },
+    { "type": "error", "name": "Trident_GameNotCreatedYet", "inputs": [] },
+    {
+      "type": "error",
+      "name": "Trident_InvalidChainId",
+      "inputs": [
+        {
+          "name": "destinationChainId",
+          "type": "uint64",
+          "internalType": "uint64"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_InvalidGamePrice",
+      "inputs": [
+        { "name": "price", "type": "uint256", "internalType": "uint256" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_InvalidGameSymbolOrName",
+      "inputs": [
+        { "name": "symbol", "type": "string", "internalType": "string" },
+        { "name": "name", "type": "string", "internalType": "string" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_InvalidReceiver",
+      "inputs": [
+        { "name": "receiver", "type": "address", "internalType": "address" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_InvalidSouceChain",
+      "inputs": [
+        {
+          "name": "sourceChainSelector",
+          "type": "uint64",
+          "internalType": "uint64"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_InvalidTokenAddress",
+      "inputs": [
+        {
+          "name": "tokenAddress",
+          "type": "address",
+          "internalType": "contract ERC20"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_NonExistantGame",
+      "inputs": [
+        {
+          "name": "invalidAddress",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_NotEnoughBalance",
+      "inputs": [
+        { "name": "gamePrice", "type": "uint256", "internalType": "uint256" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_NotEnoughLinkBalance",
+      "inputs": [
+        {
+          "name": "currentBalance",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "calculatedFees",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_SetAValidSellingPeriod",
+      "inputs": [
+        {
+          "name": "startingDate",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        { "name": "dateNow", "type": "uint256", "internalType": "uint256" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_SourceChainOrSenderNotAllowed",
+      "inputs": [
+        {
+          "name": "sourceChainSelector",
+          "type": "uint64",
+          "internalType": "uint64"
+        },
+        { "name": "sender", "type": "address", "internalType": "address" }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Trident_TokenNotAllowed",
+      "inputs": [
+        {
+          "name": "choosenToken",
+          "type": "address",
+          "internalType": "contract ERC20"
+        }
+      ]
+    }
+  ]
