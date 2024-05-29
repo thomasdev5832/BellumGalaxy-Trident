@@ -21,7 +21,7 @@ class Score:
 
     def get_social_searcher(self):
         for query in self.search_query:
-            api_url = f"{self.social_searcher_url}?q={query}&limit=10&key={self.api_reacher_key}"
+            api_url = f"{self.social_searcher_url}?q={query}&limit=50&key={self.api_reacher_key}"
             response = requests.get(api_url)
             if response.status_code == 200:
                 data = response.json()
@@ -73,12 +73,12 @@ class Score:
         print('A média das notas de sentimento é: {:.2f}'.format(average_rate))
         payload = {
             'id': f"{uuid.uuid4()}",
-            'data':self.data_list,
-            'score': average_rate,
+            # 'data': json.dumps(self.data_list),
+            'data': '',
+            'score': int(average_rate),
             'gameName': self.search_query[0]
         }
-
-        return json.dumps(payload)
+        return payload
 
     def send_request_for_api(self):
         payload = self.mount_payload()
