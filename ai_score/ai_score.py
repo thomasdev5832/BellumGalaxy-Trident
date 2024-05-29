@@ -13,7 +13,7 @@ class Score:
         self.social_searcher_url = SOCIAL_REACHER_BASE_URL
         self.api_reacher_key = f"{SOCIAL_REACHER}"
         self.openai_api_key = f"{OPENAI_KEY}"
-        self.search_query = ['fifa24']
+        self.search_query = ['dota2']
         self.posts_filtered = []
         self.current_date = datetime.now().strftime('%d-%m-%Y')
         self.rate_list = []
