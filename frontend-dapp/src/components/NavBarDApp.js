@@ -2,21 +2,6 @@ import React from 'react'
 import { useState } from 'react';
 import '../styles/NavBarDApp.css';
 import Trident from '../assets/trident.png';
-import { createThirdwebClient } from 'thirdweb';
-import { ConnectButton } from "thirdweb/react";
-import { inAppWallet } from "thirdweb/wallets";
-
-const client = createThirdwebClient({
-  clientId: "74aab45a4c5b41ba99489bc92b376221",
-});
-
-const wallets = [
-  inAppWallet({
-    auth: {
-      options: ["email"],
-    },
-  }),
-];
 
 function NavBarDApp() {
     // adding the states 
@@ -73,15 +58,7 @@ function NavBarDApp() {
               
             </ul>
             <a href='#' className="navLink">
-              <ConnectButton
-                client={client}
-                wallets={wallets}
-                theme={"dark"}
-                connectModal={{ 
-                  size: "wide", 
-                  showThirdwebBranding: false, 
-                }}
-              />
+              
             </a>
             
           </nav>
