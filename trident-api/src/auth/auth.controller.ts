@@ -10,10 +10,10 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     @Post('login')
         signIn(
-            @Body('username') username: string,
+            @Body('email') email: string,
             @Body('password') password: string
         ):Promise<AuthResponseDto>{
-            return this.authService.signIn(username, password);
+            return this.authService.signIn(email, password);
         }
 }
     
