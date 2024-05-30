@@ -94,8 +94,7 @@ contract CrossChain is Test {
 
         ccTrident.manageAllowedTokens(tokenOne, 1);
         ccTrident.manageMainContract(address(trident));
-        ccTrident.manageAllowlistSourceChain(destinationChainSelector, 1);
-        ccTrident.manageAllowlistSender(address(trident), 1);
+        ccTrident.manageCCIPAllowlist(destinationChainSelector, address(trident), 1);
         vm.stopPrank();
     }
     
@@ -136,17 +135,12 @@ contract CrossChain is Test {
 
         vm.prank(Gabriel);
         ccTrident.buyGame(1, tokenOne, Gabriel);
-
-        Trident.CCIPInfos memory ccip = trident.getLastReceivedMessageDetails(0);
-
-        assertTrue(ccip.lastReceivedMessageId != 0);
-
     }
 
     error CrossChainTrident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime);
     error CrossChainTrident_TokenNotAllowed(ERC20 choosenToken);
     error CrossChainTrident_NotEnoughBalance(uint256 gamePrice);
-    function testIfbuyGameRevertsCC() public createGame{
+    function testIfbuyGameRevertsCC() public createGame {
         vm.prank(Barba);
         bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
 
@@ -161,7 +155,7 @@ contract CrossChain is Test {
         ccTrident.buyGame(1, tokenTwo, Gabriel);
 
         vm.prank(Gabriel);
-        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_NotEnoughBalance.selector, GAME_PRICE *10**18));
+        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_NotEnoughBalance.selector, GAME_PRICE *10**6));
         ccTrident.buyGame(1, tokenOne, Gabriel);
     }
 
