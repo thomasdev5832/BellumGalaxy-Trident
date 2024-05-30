@@ -22,7 +22,10 @@ namespace tridentCore
         }
 
 
-        public async void manipulateProcess(Process[] processes)
+        public async 
+
+        Task
+manipulateProcess(Process[] processes)
         {
                 Console.WriteLine("inicio do processo");
                 ApiClient apiConnection = new ApiClient();

@@ -5,6 +5,7 @@ using trident_interfaces;
 using tridentCore;
 using System.Windows.Forms;
 using System.Xml;
+using System.ComponentModel;
 
 namespace trident_launcher
 {
@@ -14,14 +15,38 @@ namespace trident_launcher
         Thread pooling;
         private string nameProcess = "trident_launcher";
         private string token;
+
         public Trident(string token)
         {   
             InitializeComponent();
             this.token = token;
+            this.FormClosing += new FormClosingEventHandler(Trident_FormClosing);
 
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void Trident_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            e.Cancel = true;
+            this.WindowState = FormWindowState.Minimized;
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            e.Cancel = true; // Cancela o fechamento do formulário
+            this.WindowState = FormWindowState.Minimized; // Minimiza o formulário
+
+            base.OnFormClosing(e);
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            // Impede que a aplicação feche imediatamente
+            this.Hide(); // Esconde o formulário em vez de fechá-lo
+
+            base.OnClosed(e);
+        }
+
+        private async void Form1_Load(object sender, EventArgs e)
         {
 
             PoolingVerifyGames tridentPooling = new PoolingVerifyGames(token);
@@ -70,8 +95,8 @@ namespace trident_launcher
            
             // Encerrando todos os processos com o mesmo nome
 
-            //Thread t = new Thread(() => Application.Run(new FormLogin()));
-            //t.Start();
+            Thread t = new Thread(() => Application.Run(new FormLogin()));
+            t.Start();
 
         }
 

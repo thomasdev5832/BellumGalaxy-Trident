@@ -151,6 +151,7 @@ namespace trident_launcher
             Controls.Add(menuBox);
             Controls.Add(LogonButton);
             Controls.Add(pictureBox1);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Trident";
             Text = "Trident";
             TransparencyKey = Color.Gray;

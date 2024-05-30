@@ -12,14 +12,14 @@ namespace trident_launcher_pooling
         {
             PoolingCallback();
         }
-        public void PoolingCallback()
+        public async void PoolingCallback()
         {
             while (true)
             {
                 Process[] processes = Process.GetProcesses();
                 // Coloque aqui o código que deseja executar a cada intervalo de tempo
                 TridentCore tridentCore = new TridentCore(token);
-                tridentCore.manipulateProcess(processes);
+                await tridentCore.manipulateProcess(processes);
                 Console.WriteLine("Classe chamada! Tempo atual: " + DateTime.Now);
 
                 // Pausa de 30 segundos antes da próxima iteração
