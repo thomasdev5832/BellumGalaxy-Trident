@@ -57,4 +57,12 @@ export class GameService {
     }
     return game
   }
+  async findGameByGameAddress(gameAddress:string): Promise<GameEntity>{
+    const game = await this.gameRepository.findOne({ where: { gameAddress } });
+
+    if (!game) {
+      throw new HttpException(`Game with name ${name} not found`, HttpStatus.NOT_FOUND);
+    }
+    return game
+  }
 }
