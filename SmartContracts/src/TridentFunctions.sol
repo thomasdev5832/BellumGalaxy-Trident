@@ -76,6 +76,7 @@ contract TridentFunctions is FunctionsClient, Ownable{
         "const { data } = response;"
         "return Functions.encodeString(data);"
     ;
+    
     ///@notice 
     string private constant SOURCE_GET =
         "const gameName = args[0];"

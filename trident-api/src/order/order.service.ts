@@ -17,15 +17,18 @@ export class OrderService {
 
 
   ) { }
-  async getAllOrders() {
-    return await this.orderRepository.find()
+  async getAllOrders(id:string) {
+    return await this.orderRepository.find({where:{user:{userId: id}}})
   }
-  async getOrderById(id: string) {
+  async getOrderByIdOnCreate(id: string) {
     return await this.orderRepository.findOne({ where: { id } });
+  }
+  async getOrderById(id: string,userId:string) {
+    return await this.orderRepository.findOne({ where: { id, user:{userId} } });
   }
   async createOrder(orderData: OrderDto) {
 
-    orderData.previousOwner = orderData.previousOwner == '0x000000000000000000000000000000000000' ? "empty" : orderData.previousOwner;
+    orderData.previousOwner = orderData.previousOwner == '0000000000000000000000000000000000000' ? "empty" : orderData.previousOwner;
     let orderEntity = plainToClass(OrderEntity, orderData);
     let previousOwnerOrder = plainToClass(OrderEntity, orderData);
     let arrayReturn = [];
@@ -49,7 +52,7 @@ export class OrderService {
       previousOwnerOrder.isBlocked = true;
 
       if (existingOrderPreviusOwner) {
-        resultPrevius = await this.updateOrder(existingOrderPreviusOwner.id, { ...previousOwnerOrder, gameId: game.gameId, userId: userPreviusOwner.userId });
+        resultPrevius = await this.updateOrderOnCreate(existingOrderPreviusOwner.id, { ...previousOwnerOrder, gameId: game.gameId, userId: userPreviusOwner.userId });
       } else {
         resultPrevius = await this.orderRepository.save(previousOwnerOrder);
       }
@@ -63,7 +66,7 @@ export class OrderService {
     orderEntity.isBlocked = false;
 
     if (existingOrderReceiver) {
-      resultReceive = await this.updateOrder(existingOrderReceiver.id, { ...orderEntity, gameId: game.gameId, userId: userReceiver.userId });
+      resultReceive = await this.updateOrderOnCreate(existingOrderReceiver.id, { ...orderEntity, gameId: game.gameId, userId: userReceiver.userId });
     } else {
       resultReceive = await this.orderRepository.save(orderEntity);
     }
@@ -72,15 +75,22 @@ export class OrderService {
     return arrayReturn;
   }
 
-  async updateOrder(id: string, orderData: OrderDto) {
-    const order = await this.getOrderById(id)
+  async updateOrderOnCreate(id: string, orderData: OrderDto) {
+    const order = await this.getOrderByIdOnCreate(id)
     if (!order) {
       throw new HttpException(`Order with id ${id} not found`, HttpStatus.NOT_FOUND);
     }
     Object.assign(order, orderData);
     return await this.orderRepository.save(order);
   }
-
+  async updateOrder(id: string, orderData: OrderDto,userId) {
+    const order = await this.getOrderById(id,userId)
+    if (!order) {
+      throw new HttpException(`Order with id ${id} not found`, HttpStatus.NOT_FOUND);
+    }
+    Object.assign(order, orderData);
+    return await this.orderRepository.save(order);
+  }
   async findOrderByUserIdAndGameId(userId: string, gameId: string): Promise<OrderEntity> {
     return await this.orderRepository.findOne({
       where: {
@@ -94,8 +104,8 @@ export class OrderService {
     return await this.orderRepository.find({ where: { user: { userId } } })
 
   }
-  async deleteOrder(id: string) {
-    const order = await this.getOrderById(id);
+  async deleteOrder(id: string,userId:string) {
+    const order = await this.getOrderById(id,userId);
     if (!order) {
       throw new HttpException(`Order with id ${id} not found`, HttpStatus.NOT_FOUND);
     }

@@ -13,22 +13,12 @@ import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interface
 //////////////
 /// ERRORS ///
 //////////////
-///@notice emitted when a invalid param is passed to constructor
-error CrossChainTrident_InvalidDeployParameters(address owner, IRouterClient router, LinkTokenInterface link, uint64 destinationChainSelector);
 ///@notice emitted when a contract is initialized with an address(0) param
 error CrossChainTrident_InvalidAddress(address owner);
-///@notice emitted when the keeper forwarder address is invalid
-error CrossChainTrident_InvalidKeeperAddress(address forwarderAddress);
-///@notice emitted when an invalid game is selected
-error CrossChainTrident_NonExistantGame(address invalidAddress);
 ///@notice emitted when publisher input wrong address value
 error CrossChainTrident_InvalidTokenAddress(IERC20 tokenAddress);
-///@notice emitter when a not allowed caller calls checkUpkeep function
-error CrossChainTrident_InvalidCaller(address caller);
 ///@notice emitted when owner input an invalid sender address
 error CrossChainTrident_InvalidSender(address sender);
-///@notice emitted when the contract receives an log from a invalid sender
-error CrossChainTrident_InvalidLogEmissor(address senderAddress);
 ///@notice emitted when owner input an invalid sourceChain id
 error CrossChainTrident_InvalidSouceChain(uint64 sourceChainSelector);
 ///@notice emitted when a user tries to use a token that is not allowed
@@ -39,10 +29,8 @@ error CrossChainTrident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime
 error CrossChainTrident_NotEnoughBalance(uint256 gamePrice);
 ///@notice emitted when the contract doesn't have enough balance
 error CrossChainTrident_NotEnoughLinkBalance(uint256 currentBalance, uint256 calculatedFees);
-///@notice emitted when ccip receives a message from a chain that is not allowed
-error CrossChainTrident_SourceChainNotAllowed(uint64 sourceChainSelector);
-///@notice emitted when ccip receives a message from a not allowed sender
-error CrossChainTrident_SenderNotAllowed(address sender);
+///@notice emitted when the owner enters an invalid sourceChainSelector or sender
+error CrossChainTrident_SourceChainOrSenderNotAllowed(uint64 sourceChainSelector, address sender);
 
 ///////////////
 ///INTERFACE///
@@ -53,7 +41,7 @@ error CrossChainTrident_SenderNotAllowed(address sender);
     *@title Trident Project
     *@dev This is a Hackathon Project, this codebase didn't go through a cautious analysis or audit
     *@dev do not use in production
-    *contact www.bellumgalaxy.com - https://linktr.ee/bellumgalaxy
+    *@custom:contact www.bellumgalaxy.com - https://linktr.ee/bellumgalaxy
 */
 contract CrossChainTrident is CCIPReceiver, Ownable{
     using SafeERC20 for IERC20;
@@ -85,36 +73,24 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
     mapping(IERC20 tokenAddress => uint256 allowed) private s_tokenAllowed;
     ///@notice Mapping to keep track of game's info
     mapping(uint256 gameId => GameInfos) private s_gamesInfo;
-    ///@notice Mapping to keep track of allowlisted source chains. ~ 0 = not allowed | 1 = allowed
-    mapping(uint64 chainID=> uint256 allowed) private s_allowlistedSourceChains;
-    ///@notice Mapping to keep track of allowlisted senders. ~ 0 = not allowed | 1 = allowed
-    mapping(address sender => uint256 allowed) private s_allowlistedSenders;
+    ///@notice Mapping to keep track of allowlisted source chains & senders. ~ 0 = not allowed | 1 = allowed
+    mapping(uint64 chainID => mapping(address sender => uint256 allowed)) public s_allowlistedSourceChainsAndSenders;
 
     //////////////
     /// EVENTS ///
     //////////////
     ///@notice event emitted when a token is updated or added
     event CrossChainTrident_AllowedTokensUpdated(IERC20 tokenAddress, uint256 isAllowed);
-    ///@notice event emitted when a forwarded is updated or added
-    event CrossChainTrident_NewForwarderAllowd(address forwarderAddress);
     ///@notice event emitted when a source chain is updated
-    event CrossChainTrident_SourceChainUpdated(uint64 sourceChainSelector, uint256 allowed);
+    event CrossChainTrident_SourceChainUpdated(uint64 sourceChainSelector, address sender, uint256 allowed);
     ///@notice event emitted when a CCIP receiver is updated
     event CrossChainTrident_ReceiverUpdated(address previousReceiver, address newReceiver);
-    ///@notice event emitted when a automation sender is updated
-    event CrossChainTrident_AllowedSenderUpdated(address sender, uint256 isAllowed);
-    ///@notice event emitted when a new game is available
-    event CrossChainTrident_NewGameAvailable(uint256 gameId, uint256 startingDate, uint256 price);
-    ///@notice
-    event CrossChainTrident_AutomationTrigger(uint256 gameId, uint256 startingDate, uint256 price);
     ///@notice event emitted when a new copy is sold.
     event CrossChainTrident_NewGameSold(uint256 gameId, address payer, uint256 date, address gameReceiver, uint256 value);
     ///@notice event emitted when a CCIP message is sent
     event CrossChainTrident_MessageSent(bytes32 messageId, uint64 destinationChainSelector, address receiver, IERC20 token, uint256 tokenAmount, address feeToken, uint256 fees);
-    ///@notice event emitted when a game is buyed and a CCIP message is sent
-    event CrossChainTrident_UserMessageSent(bytes32 messageId, uint64 destinationChainSelector, address receiver, bytes text, address feeToken, uint256 fees);
     ///@notice event emitted when a CCIP message is received
-    event CrossChainTrident_MessageReceived(bytes32 messageId, uint64 sourceChainSelector, address sender);
+    event CrossChainTrident_MessageReceived(bytes32 messageId, uint64 sourceChainSelector, address sender, uint256 gameId, uint256 price);
     
     /**
      * @dev Modifier that checks if the chain with the given sourceChainSelector is allowlisted and if the sender is allowlisted.
@@ -122,9 +98,7 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
      * @param _sender The address of the sender.
      */
     modifier onlyAllowlisted(uint64 _sourceChainSelector, address _sender) {
-        if (s_allowlistedSourceChains[_sourceChainSelector] != 1)
-            revert CrossChainTrident_SourceChainNotAllowed(_sourceChainSelector);
-        if (s_allowlistedSenders[_sender]  != 1 ) revert CrossChainTrident_SenderNotAllowed(_sender);
+        if (s_allowlistedSourceChainsAndSenders[_sourceChainSelector][_sender] != ONE) revert CrossChainTrident_SourceChainOrSenderNotAllowed(_sourceChainSelector, _sender);
         _;
     }
     constructor(address _owner, IRouterClient _router, LinkTokenInterface _link, uint64 _destinationChainSelector) CCIPReceiver(address(_router)) Ownable(_owner){
@@ -154,6 +128,10 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
         emit CrossChainTrident_AllowedTokensUpdated(_tokenAddress, _isAllowed);
     }
 
+    /**
+     * @notice Function to update the main contract address
+     * @param _mainContract the address of the new contract.
+     */
     function manageMainContract(address _mainContract) external payable onlyOwner{
         if(_mainContract == address(0)) revert CrossChainTrident_InvalidAddress(_mainContract);
 
@@ -164,26 +142,20 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
         emit CrossChainTrident_ReceiverUpdated(previousReceiver, _mainContract);
     }
 
-    function manageAllowlistSourceChain(uint64 _sourceChainSelector, uint256 _isAllowed) external payable onlyOwner {
-        if(_sourceChainSelector < ONE) revert CrossChainTrident_InvalidSouceChain(_sourceChainSelector);
-
-        s_allowlistedSourceChains[_sourceChainSelector] = _isAllowed;
-
-        emit CrossChainTrident_SourceChainUpdated(_sourceChainSelector, _isAllowed);
-    }
-
     /**
-        * @dev Updates the allowlist status of a sender for transactions.
+        * @dev Updates the allowlist status of a source chain
         * @notice This function can only be called by the owner.
-        * @param _sender The address of the sender to be updated.
-        * @param _isAllowed The allowlist status to be set for the sender.
+        * @param _sourceChainSelector The selector of the source chain to be updated.
+        * @param _isAllowed The allowlist status to be set for the source chain.
+        * @dev 1 == allowed. Any other value == Not.
     */
-    function manageAllowlistSender(address _sender, uint256 _isAllowed) external payable onlyOwner {
+    function manageCCIPAllowlist(uint64 _sourceChainSelector, address _sender, uint256 _isAllowed) external payable onlyOwner {
+        if(_sourceChainSelector < ONE) revert CrossChainTrident_InvalidSouceChain(_sourceChainSelector);
         if(_sender == address(0)) revert CrossChainTrident_InvalidSender(_sender);
 
-        s_allowlistedSenders[_sender] = _isAllowed;
+        s_allowlistedSourceChainsAndSenders[_sourceChainSelector][_sender] = _isAllowed;
 
-        emit CrossChainTrident_AllowedSenderUpdated(_sender, _isAllowed);
+        emit CrossChainTrident_SourceChainUpdated(_sourceChainSelector, _sender, _isAllowed);
     }
 
     /**
@@ -209,13 +181,13 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
     */
     function buyGame(uint256 _gameId, IERC20 _chosenToken, address _gameReceiver) external {
         //CHECKS
-        if(s_tokenAllowed[_chosenToken] != ONE) revert CrossChainTrident_TokenNotAllowed(_chosenToken);//@Test
+        if(s_tokenAllowed[_chosenToken] != ONE) revert CrossChainTrident_TokenNotAllowed(_chosenToken);
         
         GameInfos memory game = s_gamesInfo[_gameId];
 
-        if(block.timestamp < game.startingDate) revert CrossChainTrident_GameNotAvailableYet(block.timestamp, game.startingDate);//@Test
+        if(block.timestamp < game.startingDate || game.startingDate == 0 ) revert CrossChainTrident_GameNotAvailableYet(block.timestamp, game.startingDate);
 
-        if(_chosenToken.balanceOf(msg.sender) < game.price ) revert CrossChainTrident_NotEnoughBalance(game.price);//@Test
+        if(_chosenToken.balanceOf(msg.sender) < game.price ) revert CrossChainTrident_NotEnoughBalance(game.price);
 
         address buyer = msg.sender;
 
@@ -225,6 +197,14 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
     /////////////
     ///PRIVATE///
     /////////////
+    /**
+     * @notice function to deal with storage update and external call's
+     * @param _buyer the user that is buying
+     * @param _gameId the ID of the buyed game
+     * @param _price game price
+     * @param _gameReceiver the address that will receive the game
+     * @param _chosenToken the token to pay.
+     */
     function _handleExternalCall(address _buyer, 
                                  uint256 _gameId,
                                  uint256 _price,
@@ -242,28 +222,48 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
         _chosenToken.safeTransferFrom(msg.sender, address(this), _price);
     }
 
+    /**
+     * @notice CCIP function to send tokens and messages cross-chain
+     * @param _text the data to sent through CCIP
+     * @param _token the address of the token
+     * @param _amount the amount of the token
+     */
     function _sendMessage(bytes memory _text, IERC20 _token, uint256 _amount) private returns(bytes32 messageId) {
         Client.EVMTokenAmount[] memory tokenAmounts = new Client.EVMTokenAmount[](1);
+        
+        Client.EVM2AnyMessage memory evm2AnyMessage;
 
-        Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({
-            token: address(_token),
-            amount: _amount
-        });
+        if(_amount > 0){
 
-        tokenAmounts[0] = tokenAmount;
+            Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({
+                token: address(_token),
+                amount: _amount
+            });
 
-        Client.EVM2AnyMessage memory evm2AnyMessage = Client.EVM2AnyMessage({
-            receiver: abi.encode(s_mainContractAddress),
-            data: _text,
-            tokenAmounts: tokenAmounts,
-            extraArgs: Client._argsToBytes(
-                Client.EVMExtraArgsV1({gasLimit: 500_000})
-            ),
-            feeToken: address(i_linkToken)
-        });
+            tokenAmounts[0] = tokenAmount;
+
+            evm2AnyMessage = Client.EVM2AnyMessage({
+                receiver: abi.encode(s_mainContractAddress),
+                data: _text,
+                tokenAmounts: tokenAmounts,
+                extraArgs: Client._argsToBytes(
+                    Client.EVMExtraArgsV1({gasLimit: 500_000})
+                ),
+                feeToken: address(i_linkToken)
+            });
+        } else {
+            evm2AnyMessage = Client.EVM2AnyMessage({
+                receiver: abi.encode(s_mainContractAddress),
+                data: _text,
+                tokenAmounts: new Client.EVMTokenAmount[](0),
+                extraArgs: Client._argsToBytes(
+                    Client.EVMExtraArgsV1({gasLimit: 500_000})
+                ),
+                feeToken: address(i_linkToken)
+            });
+        }
 
         uint256 fees = i_router.getFee(i_destinationChainSelector, evm2AnyMessage);
-
 
         if (fees > i_linkToken.balanceOf(address(this))) revert CrossChainTrident_NotEnoughLinkBalance(i_linkToken.balanceOf(address(this)), fees);
 
@@ -280,6 +280,11 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
     //////////////
     ///INTERNAL///
     //////////////
+    /**
+     * @notice CCIP function to receive Cross-chain tokens and messages
+     * @param any2EvmMessage the CCIP messaging struct data
+     * @dev this function can only be called by allowed senders and chains.
+     */
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override onlyAllowlisted(any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address))){
 
         (uint256 gameId, uint256 sellingDate, uint256 price) = abi.decode(any2EvmMessage.data, (uint256, uint256, uint256));
@@ -289,19 +294,12 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
             price: price
         });
         
-        emit CrossChainTrident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)));
+        emit CrossChainTrident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)), gameId, price);
     }
 
     /////////////////
     ///VIEW & PURE///
     /////////////////
-    function getMainContractAddress() external view returns(address){
-        return s_mainContractAddress;
-    }
-
-    function getAllowedTokens(IERC20 _tokenAddress) external view returns(uint256){
-        return s_tokenAllowed[_tokenAddress];
-    }
 
     function getGamesInfo(uint256 _gameId) external view returns(GameInfos memory info){
         info = s_gamesInfo[_gameId];

@@ -94,8 +94,7 @@ contract CrossChain is Test {
 
         ccTrident.manageAllowedTokens(tokenOne, 1);
         ccTrident.manageMainContract(address(trident));
-        ccTrident.manageAllowlistSourceChain(destinationChainSelector, 1);
-        ccTrident.manageAllowlistSender(address(trident), 1);
+        ccTrident.manageCCIPAllowlist(destinationChainSelector, address(trident), 1);
         vm.stopPrank();
     }
     
@@ -116,36 +115,32 @@ contract CrossChain is Test {
         CrossChainTrident.GameInfos memory info = ccTrident.getGamesInfo(1);
 
         assertEq(info.startingDate, SELLING_DATE);
-        assertEq(info.price, GAME_PRICE *10**18);
+        assertEq(info.price, GAME_PRICE *10**6);
     }
 
     /////////////
     ///buyGame///
     /////////////
-    // function test_ifAUserCanByAGameCC() public createGame{
-    //     vm.prank(Barba);
-    //     bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
+    //It will fail because of functions in the destination
+    function test_ifAUserCanByAGameCC() public createGame{
+        vm.prank(Barba);
+        bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
 
-    //     tokenOne.mint(Gabriel, USER_INITIAL_BALANCE);
+        tokenOne.mint(Gabriel, USER_INITIAL_BALANCE);
 
-    //     vm.prank(Gabriel);
-    //     tokenOne.approve(address(ccTrident), USER_INITIAL_BALANCE);
+        vm.prank(Gabriel);
+        tokenOne.approve(address(ccTrident), USER_INITIAL_BALANCE);
 
-    //     vm.warp(10_001);
+        vm.warp(10_001);
 
-    //     vm.prank(Gabriel);
-    //     ccTrident.buyGame(1, tokenOne, Gabriel);
-
-    //     Trident.CCIPInfos memory ccip = trident.getLastReceivedMessageDetails(0);
-
-    //     assertTrue(ccip.lastReceivedMessageId != 0);
-
-    // }
+        vm.prank(Gabriel);
+        ccTrident.buyGame(1, tokenOne, Gabriel);
+    }
 
     error CrossChainTrident_GameNotAvailableYet(uint256 timeNow, uint256 releaseTime);
     error CrossChainTrident_TokenNotAllowed(ERC20 choosenToken);
     error CrossChainTrident_NotEnoughBalance(uint256 gamePrice);
-    function testIfbuyGameRevertsCC() public createGame{
+    function testIfbuyGameRevertsCC() public createGame {
         vm.prank(Barba);
         bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
 
@@ -160,33 +155,34 @@ contract CrossChain is Test {
         ccTrident.buyGame(1, tokenTwo, Gabriel);
 
         vm.prank(Gabriel);
-        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_NotEnoughBalance.selector, GAME_PRICE *10**18));
+        vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_NotEnoughBalance.selector, GAME_PRICE *10**6));
         ccTrident.buyGame(1, tokenOne, Gabriel);
     }
 
     ///sendAdminMessage///
-    // function test_sendAdminMessage() public createGame{
-    //     vm.prank(Barba);
-    //     bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
+    //It will fail because of functions in the destination
+    function test_sendAdminMessage() public createGame{
+        vm.prank(Barba);
+        bytes32 messageId = trident.dispatchCrossChainInfo(1, destinationChainSelector);
 
-    //     tokenOne.mint(Gabriel, USER_INITIAL_BALANCE);
+        tokenOne.mint(Gabriel, USER_INITIAL_BALANCE);
 
-    //     vm.prank(Gabriel);
-    //     tokenOne.approve(address(ccTrident), USER_INITIAL_BALANCE);
+        vm.prank(Gabriel);
+        tokenOne.approve(address(ccTrident), USER_INITIAL_BALANCE);
 
-    //     vm.warp(10_001);
+        vm.warp(10_001);
 
-    //     vm.prank(Gabriel);
-    //     ccTrident.buyGame(1, tokenOne, Gabriel);
+        vm.prank(Gabriel);
+        ccTrident.buyGame(1, tokenOne, Gabriel);
 
-    //     ///====================================================
+        ///====================================================
 
-    //     vm.startPrank(Barba);
-    //     ccTrident.sendAdminMessage(tokenOne, GAME_PRICE);
-    //     vm.stopPrank();
+        vm.startPrank(Barba);
+        ccTrident.sendAdminMessage(tokenOne, GAME_PRICE);
+        vm.stopPrank();
 
-    //     assertEq(tokenOne.balanceOf(address(ccTrident)), 0);
-    //     assertEq(tokenOne.balanceOf(address(trident)), GAME_PRICE *10**18);
-    // }
+        assertEq(tokenOne.balanceOf(address(ccTrident)), 0);
+        assertEq(tokenOne.balanceOf(address(trident)), GAME_PRICE *10**18);
+    }
 
 }

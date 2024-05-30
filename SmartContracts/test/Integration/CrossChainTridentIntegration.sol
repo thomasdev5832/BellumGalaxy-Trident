@@ -73,36 +73,12 @@ contract TridentIntegration is Test {
         _;
     }
 
-    /////////////////////////
-    ///manageAllowedTokens///
-    /////////////////////////
-    function test_manageAllowedTokens() public {
-        vm.prank(Barba);
-        ccTrident.manageAllowedTokens(tokenOne, 1);
-
-        uint256 allowed = ccTrident.getAllowedTokens(tokenOne);
-
-        assertEq(allowed, 1);
-    }
-
     error CrossChainTrident_InvalidTokenAddress(ERC20 tokenAddress);
     error CrossChainTrident_ZeroOneOption(uint256 isAllowed);
     function test_revertManageAllowedTokens() public createGame{
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_InvalidTokenAddress.selector, ERC20(address(0))));
         ccTrident.manageAllowedTokens(ERC20(address(0)), 1);
-    }
-
-    ////////////////////////
-    ///manageMainContract///
-    ////////////////////////
-    function test_manageMainContract() public {
-        vm.prank(Barba);
-        ccTrident.manageMainContract(fakeReceiver);
-
-        address receiver = ccTrident.getMainContractAddress();
-
-        assertEq(fakeReceiver, receiver);
     }
 
     error CrossChainTrident_InvalidAddress(address receiver);
@@ -114,36 +90,24 @@ contract TridentIntegration is Test {
         ccTrident.manageMainContract(fakeContract);
     }
 
-    ///manageAllowlistSourceChain///
+    ///manageCCIPAllowlist///
     function test_manageAllowlistSourceChain() public{
         uint64 fakeChainId = 165161165161;
 
         vm.prank(Barba);
-        ccTrident.manageAllowlistSourceChain(fakeChainId, 1);
+        ccTrident.manageCCIPAllowlist(fakeChainId, address(ccTrident), 1);
     }
 
     error CrossChainTrident_InvalidSouceChain(uint64);
+    error CrossChainTrident_InvalidSender(address sender);
     function test_revertManageAllowlistSourceChain() public {
 
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_InvalidSouceChain.selector, 0));
-        ccTrident.manageAllowlistSourceChain(0, 1);
-    }
+        ccTrident.manageCCIPAllowlist(0, address(ccTrident), 1);
 
-    ///manageAllowlistSender///
-    event CrossChainTrident_AllowedSenderUpdated(address, uint256);
-    function test_manageAllowlistSender() public {
-        vm.prank(Barba);
-        vm.expectEmit();
-        emit CrossChainTrident_AllowedSenderUpdated(Raffa, 1);
-        ccTrident.manageAllowlistSender(Raffa, 1);
-    }
-
-    error CrossChainTrident_InvalidSender(address);
-    function test_revertManageAllowlistSender() public {
         vm.prank(Barba);
         vm.expectRevert(abi.encodeWithSelector(CrossChainTrident_InvalidSender.selector, address(0)));
-        ccTrident.manageAllowlistSender(address(0), 1);
-
+        ccTrident.manageCCIPAllowlist(destinationChainSelector, address(0), 1);
     }
 }

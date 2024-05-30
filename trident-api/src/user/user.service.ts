@@ -20,6 +20,8 @@ export class UserService {
   }
 
   async createUser(userData: UserDto): Promise<UserDto> {
+    userData.walletId = userData.walletId.replace('0x','').toLowerCase()
+    console.log(userData.walletId)
     const newUser = await this.userRepository.create(userData);
     return this.userRepository.save(newUser);
   }
@@ -46,7 +48,10 @@ export class UserService {
     return await this.userRepository.findOne({ where: { name: username } });
   }
   async findByUserEmail(email: string): Promise<UserDto | null> {
-    return await this.userRepository.findOne({ where: { email } });
+    console.log("email",email)
+    const response = await this.userRepository.findOne({ where: { email } });
+    console.log(response)
+    return response
   }
 
   async findByUserWallerId(walletId: string): Promise<UserDto | null> {
