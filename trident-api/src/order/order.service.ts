@@ -101,7 +101,18 @@ export class OrderService {
   }
   async findOrderByUserId(userId: string): Promise<OrderEntity[]> {
     console.log('userId', userId)
-    return await this.orderRepository.find({ where: { user: { userId } } })
+    let result = []
+    const orderUser = await this.orderRepository.find({ where: { user:{userId} } });
+
+    for(let i = 0; i < orderUser.length; i++){
+      const game = await this.gameService.findGameByGameAddress(orderUser[i].gameAddress)
+      console.log(game)
+      result.push({
+        ...game,
+        ...orderUser[i]
+      })
+    }  
+    return result
 
   }
   async deleteOrder(id: string,userId:string) {
