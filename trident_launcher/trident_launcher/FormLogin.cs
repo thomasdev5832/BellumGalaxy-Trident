@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using tridentApi;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace trident_launcher
 {
@@ -17,22 +19,25 @@ namespace trident_launcher
         {
             InitializeComponent();
         }
-        private bool verifyLogin(string username, string password)
+        private async Task<string> verifyLoginAsync(string username, string password)
         {
-            const string UsuarioCorreto = "admin@trident.com";
-            const string SenhaCorreta = "admin";
-            if (UsuarioCorreto == username && SenhaCorreta == password)
+            ApiClient apiClient = new ApiClient();
+
+            string loginSuccess = await apiClient.LoginAsync(username, password);
+            Console.WriteLine(loginSuccess);
+            if (!string.IsNullOrEmpty(loginSuccess))
+                return loginSuccess;
+            else
             {
-                return true;
+                return null;
             }
-            return false;
         }
         private void FormLogin_Load(object sender, EventArgs e)
         {
 
         }
 
-        private void login_Click(object sender, EventArgs e)
+        private async void login_ClickAsync(object sender, EventArgs e)
         {
             string email = emailText.Text;
             string password = passwordText.Text;
@@ -41,11 +46,12 @@ namespace trident_launcher
                 MessageBox.Show("Por favor insira seu email e sua senha", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+            string token = await verifyLoginAsync(email, password);
+            
 
-            _logged = verifyLogin(email, password);
-
-            if (!_logged)
+            if (string.IsNullOrEmpty(token))
             {
+                _logged = false;
                 MessageBox.Show("Usu�rio ou senha inv�lidos", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 emailText.Text = "";
                 passwordText.Text = "";
@@ -53,7 +59,7 @@ namespace trident_launcher
             }
 
             this.Close();
-            Thread t = new Thread(() => Application.Run(new Trident()));
+            Thread t = new Thread(() => Application.Run(new Trident(token)));
             t.Start();
 
         }
