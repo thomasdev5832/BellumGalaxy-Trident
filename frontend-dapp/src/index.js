@@ -11,6 +11,9 @@ import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { WagmiProvider, deserialize, serialize } from 'wagmi'
 
+import { DynamicContextProvider, DynamicWidget } from '@dynamic-labs/sdk-react-core';
+import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 const queryClient = new QueryClient({
@@ -29,14 +32,22 @@ const persister = createAsyncStoragePersister({
 
 root.render(
   <React.StrictMode>
-    <WagmiProvider config={config}>
-      <PersistQueryClientProvider
-        client={queryClient}
-        persistOptions={{ persister }}
-        >
-         <App />
-      </PersistQueryClientProvider>
-    </WagmiProvider>
+    <DynamicContextProvider
+            theme='dark'
+            settings={{
+              environmentId: process.env.REACT_APP_CLIENT_ID,
+              appName: 'Trident',
+              walletConnectors: [ EthereumWalletConnectors ],
+            }}>
+      <WagmiProvider config={config}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister }}
+          >
+            <App />
+        </PersistQueryClientProvider>
+      </WagmiProvider>
+    </DynamicContextProvider>
   </React.StrictMode>
 );
 

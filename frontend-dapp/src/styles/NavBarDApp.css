@@ -29,6 +29,8 @@ a:hover {
     align-items     : center;
     gap             : 40px;
     min-height      : 70px;
+    position        : relative;
+    z-index         : 1000;
 }
 
 /* logo  */
@@ -49,6 +51,8 @@ a:hover {
     justify-content: flex-end;
     align-items    : left;
     gap            : 60px;
+    position       : relative;
+    z-index        : 1000;
 }
 
 .navMenu li {}
@@ -127,6 +131,7 @@ a:hover {
         transition      : 0.3s ease-in-out;
         background-color: #0a1124;
         padding         : 10px;
+        z-index         : 1000;
     }
 
     .navMenu.active {

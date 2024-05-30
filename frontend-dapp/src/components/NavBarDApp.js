@@ -2,6 +2,7 @@ import React from 'react'
 import { useState } from 'react';
 import '../styles/NavBarDApp.css';
 import Trident from '../assets/trident.png';
+import { DynamicWidget } from '@dynamic-labs/sdk-react-core';
 
 function NavBarDApp() {
     // adding the states 
@@ -58,7 +59,7 @@ function NavBarDApp() {
               
             </ul>
             <a href='#' className="navLink">
-              
+            <DynamicWidget />
             </a>
             
           </nav>
