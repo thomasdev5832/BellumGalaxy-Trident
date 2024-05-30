@@ -33,7 +33,7 @@ function Store() {
       
       const signer = await primaryWallet?.connector?.ethers?.getSigner();
       
-      const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/efa7ec71610546999a311d56ece1e112`);
+      const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${infuraApiKey}`);
 
       const contractAddress = '0x873C0df305D75b078f002a81e2e8571021AC7e13';
 
