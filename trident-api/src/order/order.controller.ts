@@ -1,21 +1,38 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, HttpException, HttpStatus, UseGuards, Headers, Req } from '@nestjs/common';
 import { OrderService } from './order.service'; // Importe o serviço de pedido
+import { AuthGuard } from 'src/auth/auth.guard';
+import { verify } from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {} // Injete o serviço de pedido no controller
-
+  
   @Get()
-  getAllOrders() {
-    return this.orderService.getAllOrders();
+  @UseGuards(AuthGuard)
+  getAllOrders(@Req() req) {
+    const user = req.user
+    console.log(user)
+    return this.orderService.getAllOrders(user.sub);
   }
 
   @Get(':id')
-  getOrderById(@Param('id') id: string) {
-    return this.orderService.getOrderById(id);
+  @UseGuards(AuthGuard)
+  getOrderById(@Req() req, @Param('id') id: string) {
+    const {sub} = req.user
+    const response = this.orderService.getOrderById(id,sub);
+    if(!response){
+      throw new HttpException(`Order not found`, HttpStatus.NOT_FOUND);
+    }
+    return response
   }
  @Get('/user/:userId')
- findOrderByUserId(@Param('userId') userId: string){
+ @UseGuards(AuthGuard)
+ findOrderByUserId(@Req() req,@Param('userId') userId: string){
+  const {sub} = req.user
+  if(sub != userId){
+    throw new HttpException(`Not authorized`, HttpStatus.FORBIDDEN);
+  }
     return this.orderService.findOrderByUserId(userId)
  }
 
@@ -53,12 +70,30 @@ export class OrderController {
   }
 
   @Put(':id')
-  updateOrder(@Param('id') id: string, @Body() orderData: any) {
-    return this.orderService.updateOrder(id, orderData);
+  @UseGuards(AuthGuard)
+  updateOrder(@Req() req,@Param('id') id: string, @Body() orderData: any) {
+    const {sub} = req.user
+    if(sub != id){
+      throw new HttpException(`Not authorized`, HttpStatus.FORBIDDEN);
+    }
+    const response = this.orderService.updateOrder(id, orderData, sub);
+    if(!response){
+      throw new HttpException(`Order not found`, HttpStatus.NOT_FOUND);
+    }
+    return response
   }
 
   @Delete(':id')
-  deleteOrder(@Param('id') id: string) {
-    return this.orderService.deleteOrder(id);
+  @UseGuards(AuthGuard)
+  deleteOrder(@Req() req,@Param('id') id: string) {
+    const {sub} = req.user
+    if(sub != id){
+      throw new HttpException(`Not authorized`, HttpStatus.FORBIDDEN);
+    }
+    const response = this.orderService.deleteOrder(id, sub);
+    if(!response){
+      throw new HttpException(`Order not found`, HttpStatus.NOT_FOUND);
+    }
+    return response
   }
 }
