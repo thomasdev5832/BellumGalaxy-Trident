@@ -3,6 +3,8 @@ import Game from '../components/Game';
 import '../styles/Store.css';
 import { useReadContract } from 'wagmi';
 import tridentAbi from '../utils/Trident.json';
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { ethers } from 'ethers';
 
 import gameImage1 from '../assets/game-images/game-01.jpg';
 import gameImage2 from '../assets/game-images/game-02.jpg';
@@ -16,16 +18,42 @@ import gameImage9 from '../assets/game-images/game-09.jpg';
 import gameImage10 from '../assets/game-images/game-10.jpg';
 import gameImage11 from '../assets/game-images/game-11.jpg';
 import gameImage12 from '../assets/game-images/game-12.jpg';
+import bellumGame from '../assets/bellum-game.webp';
+
 
 function Store() {
-  const result = useReadContract({
-    tridentAbi,
-    address: '0xF7bB747345A4b40548e6b42aAf09eEd9AE1eD4E5',
-    functionName: 'getGamesCreated',
-    args: [1]
-  });
 
-  console.log(result);
+  const infuraApiKey = process.env.REACT_APP_INFURA_API_KEY;
+  const { primaryWallet } = useDynamicContext();
+  const [gameName, setGameName] = useState('');
+  const [gamePrice, setGamePrice] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      
+      const signer = await primaryWallet?.connector?.ethers?.getSigner();
+      
+      const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/efa7ec71610546999a311d56ece1e112`);
+
+      const contractAddress = '0x873C0df305D75b078f002a81e2e8571021AC7e13';
+
+      const contract = new ethers.Contract(contractAddress, tridentAbi, provider);
+
+      try {
+        
+        const result = await contract.getGamesCreated(1);
+
+        setGameName(result[1]);
+        setGamePrice(formatPrice(result[4]));
+
+        console.log(result);
+      } catch (error) {
+        console.error('Erro ao ler dados do contrato:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const featuredGames = [
     { 
@@ -164,24 +192,48 @@ function Store() {
   };
 
   useEffect(() => {
-    // Configurar o intervalo para alternar slides automaticamente a cada 5 segundos
     const interval = setInterval(() => {
       nextSlide();
-    }, 5000); // 5000 milissegundos = 5 segundos
-
-    // Limpeza: Limpar o intervalo ao desmontar o componente
+    }, 5000); 
     return () => {
       clearInterval(interval);
     };
-  }, [currentSlide]); // Dependência para reiniciar o intervalo quando currentSlide muda
+  }, [currentSlide]);
 
+  const formatPrice = (price) => {
+    return price.toString().replace(/0+$/, '');
+  };
 
   return (
     <div className="store">
-      
+      <div className='main-banner'>
+        <div style={{backgroundImage: `${bellumGame}`}} className='main-game'>
+          <div className='main-game-info'>
+            <h2>{gameName}</h2>
+            <p className='game-description'>Embark on an exhilarating journey through the cosmos, where strategic prowess meets boundless exploration.</p>
+            <div className='main-game-price-and-button'>
+              <p className='game-price'>${gamePrice}</p>
+              <div className='game-rating-wrap'>
+                <p className="game-rating">
+                  <span>
+                  9/10
+                  </span>
+                  Rating
+                </p> 
+              </div>
+              <button className='buy-main-game-button'>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7h-1M8 7h-.688M13 5v4m-2-2h4"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="banner-and-info">
       <section className="platform-info">
           <h2>Game Ownership, Reinvented</h2>
+          <div className='title-bar'></div>
           <p>
           Enter a new era of gaming where you're not just playing — you're a stakeholder. Our platform uses blockchain technology to give you unparalleled control over your digital assets, empowering you to own and manage your digital gaming collection like never before.
             </p>
@@ -208,7 +260,15 @@ function Store() {
       </section>
 
       <section className='middle'>
-
+          <div>
+            <h2>Play Safety Now</h2>
+            <p>
+              Embrace a safer gaming environment by combating piracy. <br />
+              Support legitimate sources and developers to ensure a fair and secure experience for all. By playing responsibly and avoiding pirated content, we help foster a community that values integrity and safety.<br/>
+              Play smart, play safe, and stand against piracy.
+            </p>
+            <a className='learn-more-button'>Learn More</a>
+          </div>
       </section>
     </div>
   );

@@ -125,15 +125,6 @@ contract TridentIntegration is Test {
     /////////////////////////
     ///manageAllowedTokens///
     /////////////////////////
-    function test_manageAllowedTokens() public {
-        vm.prank(Barba);
-        trident.manageAllowedTokens(tokenOne, 1);
-
-        uint256 allowed = trident.getAllowedTokens(tokenOne);
-
-        assertEq(allowed, 1);
-    }
-
     error Trident_InvalidTokenAddress(ERC20 tokenAddress);
     function test_revertManageAllowedTokens() public {
         vm.prank(Barba);
@@ -221,10 +212,10 @@ contract TridentIntegration is Test {
         trident.setReleaseConditions(1, 301, gamePrice);
         vm.stopPrank();
 
-        Trident.GameInfos memory infos = trident.getGamesInfo(1);
+        Trident.GameRelease memory infos = trident.getGamesCreated(1);
 
         assertEq(infos.sellingDate, 301);
-        assertEq(infos.price, 30*10**18);
+        assertEq(infos.price, 30*10**6);
         assertEq(infos.copiesSold, 0);
     }
 
@@ -299,7 +290,7 @@ contract TridentIntegration is Test {
         trident.buyGame(1, tokenTwo, Gabriel);
 
         vm.prank(Gabriel);
-        vm.expectRevert(abi.encodeWithSelector(Trident_NotEnoughBalance.selector, GAME_PRICE *10**18));
+        vm.expectRevert(abi.encodeWithSelector(Trident_NotEnoughBalance.selector, GAME_PRICE *10**6));
         trident.buyGame(1, tokenOne, Gabriel);
     }
 }

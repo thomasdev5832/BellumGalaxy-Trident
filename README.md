@@ -107,17 +107,61 @@ Valor arrecadado por Desenvolvedoras
   - Através da eliminação da pirataria e da geração de renda contínua a partir do market, permite que as desenvolvedoras/distribuidoras reduzam sua margem e, por consequência, mais pessoas tenham acesso.
 
 ## Next steps
+1. Implement improvements to reduce the cross-chain messaging time to users.
+2. Implement a swapping functionality that allows users to buy using any Dex-tradable coin. However, receiving in specific stable.
+3. Expand the proposal to other software, not only games.
+4. Standardize the process to allow companies to incorporate it into existing infrastructure.
+
+## Chainlink Tools Summary Table
+### Chainlink Functions
+|      Contract      |   Line   | Function               |   Go to  |
+|--------------------|----------|------------------------|----------|
+|TridentNFT.sol      |   278    | _update                | [Check](https://github.com/BellumGalaxy/BlockMagic-Trident/blob/e96ca88b53d1dac287eb711b2696e322082fac18/SmartContracts/src/TridentNFT.sol#L278-L286)|
+|TridentFunctions.sol|   83     | Whole contract         | [Check](https://github.com/BellumGalaxy/BlockMagic-Trident/blob/main/SmartContracts/src/TridentFunctions.sol)|
+
+### Chainlink CCIP
+|      Contract       |   Line   | Function               |   Go to  |
+|---------------------|----------|------------------------|----------|
+|Trident.sol          |   278    | _sendMessage           | [Check](https://github.com/BellumGalaxy/BlockMagic-Trident/blob/e96ca88b53d1dac287eb711b2696e322082fac18/SmartContracts/src/Trident.sol#L424-L450)|
+|Trident.sol          |   278    | _ccipReceive           | [Check](https://github.com/BellumGalaxy/BlockMagic-Trident/blob/e96ca88b53d1dac287eb711b2696e322082fac18/SmartContracts/src/Trident.sol#L334-L374)|
+|CrossChainTrident.sol|   231    | _sendMessage           | [Check](https://github.com/BellumGalaxy/BlockMagic-Trident/blob/e96ca88b53d1dac287eb711b2696e322082fac18/SmartContracts/src/CrossChainTrident.sol#L231-L278)|
+|CrossChainTrident.sol|   288    | _ccipReceive           | [Check](https://github.com/BellumGalaxy/BlockMagic-Trident/blob/e96ca88b53d1dac287eb711b2696e322082fac18/SmartContracts/src/CrossChainTrident.sol#L288-L306)|
+|CrossChainTrident.sol|   83     | sendAdminMessage       | [Check](https://github.com/BellumGalaxy/BlockMagic-Trident/blob/e96ca88b53d1dac287eb711b2696e322082fac18/SmartContracts/src/CrossChainTrident.sol#L169-L171)|
+
+### Chainlink Automation
+[Upkeep ID](100294353963328653549617203788371036649238998750535143727578973951519038272398).
+|      Contract       |   Line   | Function               |   Go to  |
+|---------------------|----------|------------------------|----------|
+|Trident.sol          |    287   | gameScorerGetter       | [Check](https://github.com/BellumGalaxy/BlockMagic-Trident/blob/e96ca88b53d1dac287eb711b2696e322082fac18/SmartContracts/src/Trident.sol#L287-L300)|
 
 ## Technology
-- Blockchain X
+- Blockchain
+  - Ethereum Sepolia
+  - Optimism Sepolia
+- Blockchain Primitives
+  - NFT - ERC721
+  - Stablecoin - ERC20
 - Oráculos
   - Chainlink Functions
   - Chainlink CCIP
+  - Chainlink Automation
+- Programming Languages
+  - Solidity
+  - Python
+  - Java Script
+  - TypeScript
+  - C#
 - Frontend
-  - Frameworks
-- Launcher
-  - DBs
-  - Ferramentas
+  - React
+  - Dynamic
+  - Ethers.js
+- Backend
+  - API
+  - Data Base
+- Infrastructure
+  - Launcher .exe
+- Tools
+  - Generative AI - OpenAI
 
 ## Meet the Team
 |Name   | Title | Linkedin | X/Twitter | GitHub |     
@@ -126,3 +170,4 @@ Valor arrecadado por Desenvolvedoras
 | Raffa | Data Scientist & Blockchain Analyst | [Link](https://www.linkedin.com/in/raffaela-loffredo/) | [Link](https://twitter.com/loffredods) | [Link](https://github.com/raffaloffredo) |
 | Gabriel | Crawler, Python, Node.js, C# Developer | [Link](https://www.linkedin.com/in/gabriel-muniz-schneider/) | - | [Link](https://github.com/dejazz) |
 | Cayo | Frontend Developer | [Link](https://www.linkedin.com/in/cayo-morais-070b721b9/) | - | [Link](https://github.com/CayoTarcisio) |
+| Gabriel | Full Stack Developer & Software Engineer | [Link](https://www.linkedin.com/in/gabrieltome/) | [Link](https://x.com/GabrielThomeDev) | [Link](https://github.com/thomasdev5832) |

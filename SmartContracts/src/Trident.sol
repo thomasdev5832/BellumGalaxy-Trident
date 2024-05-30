@@ -18,8 +18,6 @@ import {TridentFunctions} from "./TridentFunctions.sol";
 //////////////
 ///@notice emitted when owner input an invalid sourceChain id
 error Trident_InvalidSouceChain(uint64 sourceChainSelector);
-///@notice emitted when owner input an invalid sender address
-error Trident_InvalidSender(address sender);
 ///@notice emitted when owner input an invalid chainId
 error Trident_InvalidChainId(uint64 destinationChainId);
 ///@notice emitted when owner input an address(0) as param
@@ -52,7 +50,7 @@ error Trident_NotEnoughLinkBalance(uint256 currentBalance, uint256 calculatedFee
     *@title Trident Project
     *@dev This is a Hackathon Project, this codebase didn't go through a cautious analysis or audit
     *@dev do not use in production
-    *contact www.bellumgalaxy.com - https://linktr.ee/bellumgalaxy
+    *@custom:contact www.bellumgalaxy.com - https://linktr.ee/bellumgalaxy
 */
 contract Trident is CCIPReceiver, Ownable{
     using SafeERC20 for ERC20;
@@ -65,10 +63,6 @@ contract Trident is CCIPReceiver, Ownable{
         string gameSymbol;
         string gameName;
         TridentNFT keyAddress;
-    }
-
-    ///@notice Struct to track info about games to be released
-    struct GameInfos {
         uint256 sellingDate;
         uint256 price;
         uint256 copiesSold;
@@ -118,11 +112,9 @@ contract Trident is CCIPReceiver, Ownable{
     string[] private scoreCheck;
 
     ///@notice Mapping to keep track of allowed stablecoins. ~ 0 = not allowed | 1 = allowed
-    mapping(ERC20 tokenAddress => uint256 allowed) private s_tokenAllowed;
+    mapping(ERC20 tokenAddress => uint256 allowed) public s_tokenAllowed;
     ///@notice Mapping to keep track of future launched games
     mapping(uint256 gameIdCounter => GameRelease) private s_gamesCreated;
-    ///@notice Mapping to keep track of game's info
-    mapping(uint256 gameIdCounter => GameInfos) private s_gamesInfo;
     ///@notice Mapping to keep track of games an user has
     mapping(address client => ClientRecord[]) private s_clientRecords;
     ///@notice Mapping to keep track of CCIP transactions
@@ -141,8 +133,6 @@ contract Trident is CCIPReceiver, Ownable{
     event Trident_AllowedTokensUpdated(string tokenName, string tokenSymbol, ERC20 tokenAddress, uint256 isAllowed);
     ///@notice event emitted when a Cross-chain receiver is created
     event Trident_CrossChainReceiverUpdated(uint64 destinationChainId, address receiver);
-    ///@notice emitted when the Functions Contract address is updated
-    event Trident_FunctionsAddressUpdated(address previousAddress, address functionsAddress);
     ///@notice event emitted when a new game nft is created
     event Trident_NewGameCreated(uint256 gameId, string tokenSymbol, string gameName, TridentNFT tridentNFT);
     ///@notice event emitted when infos about a new game is released
@@ -211,6 +201,11 @@ contract Trident is CCIPReceiver, Ownable{
         emit Trident_AllowedTokensUpdated(_tokenAddress.name(), _tokenAddress.symbol(), _tokenAddress, _isAllowed);
     }
 
+    /**
+     * @notice function to track allowed cross-chain addresses
+     * @param _destinationChainId blockchain Id
+     * @param _receiver destination contract
+     */
     function manageCrossChainReceiver(uint64 _destinationChainId, address _receiver) external onlyOwner{
         if(_destinationChainId < ONE) revert Trident_InvalidChainId(_destinationChainId);
         if(_receiver == address(0)) revert Trident_InvalidReceiver(_receiver);
@@ -230,13 +225,16 @@ contract Trident is CCIPReceiver, Ownable{
         // CHECKS
         if(bytes(_gameSymbol).length < ONE || bytes(_gameName).length < ONE) revert Trident_InvalidGameSymbolOrName(_gameSymbol, _gameName);
 
-        s_gameIdCounter = s_gameIdCounter + 1;
+        s_gameIdCounter = s_gameIdCounter + ONE;
 
         //EFFECTS
         s_gamesCreated[s_gameIdCounter] = GameRelease({
             gameSymbol:_gameSymbol,
             gameName: _gameName,
-            keyAddress: TridentNFT(address(0))
+            keyAddress: TridentNFT(address(0)),
+            sellingDate: 0,
+            price: 0,
+            copiesSold: 0
         });
 
         scoreCheck.push(_gameName);
@@ -247,7 +245,7 @@ contract Trident is CCIPReceiver, Ownable{
 
         s_gamesCreated[s_gameIdCounter].keyAddress.setFunctionsContract(address(i_functions));
 
-        i_functions.setAllowedContracts(address(s_gamesCreated[s_gameIdCounter].keyAddress), 1);
+        i_functions.setAllowedContracts(address(s_gamesCreated[s_gameIdCounter].keyAddress), ONE);
     }
 
     /**
@@ -266,20 +264,16 @@ contract Trident is CCIPReceiver, Ownable{
         if(_price < ONE) revert Trident_InvalidGamePrice(_price);
 
         //EFFECTS
-        s_gamesInfo[_gameId] = GameInfos({
-            sellingDate: _startingDate,
-            price: _price * DECIMALS,
-            copiesSold: 0
-        });
+        s_gamesCreated[_gameId].sellingDate = _startingDate;
+        s_gamesCreated[_gameId].price = _price * 10**6;
 
         emit Trident_ReleaseConditionsSet(_gameId, _startingDate, _price);
     }
 
-    //remove
     function dispatchCrossChainInfo(uint256 _gameId, uint64 _destinationChainId) external payable onlyOwner returns(bytes32 messageId){       
         if(address(s_gamesCreated[_gameId].keyAddress) == address(0)) revert Trident_NonExistantGame(address(0));
         
-        GameInfos memory info = s_gamesInfo[_gameId];
+        GameRelease memory info = s_gamesCreated[_gameId];
 
         //Hackathon Purpouses
         bytes memory permission = abi.encode(_gameId, info.sellingDate, info.price);
@@ -287,6 +281,9 @@ contract Trident is CCIPReceiver, Ownable{
         messageId = _sendMessage(_destinationChainId, permission);
     }
 
+    /**
+     * @notice function to request AI information about games created.
+     */
     function gameScoreGetter() external {
         //need to whitelist caller
         uint256 gamesNumber = scoreCheck.length;
@@ -315,33 +312,45 @@ contract Trident is CCIPReceiver, Ownable{
         //CHECKS
         if(s_tokenAllowed[_chosenToken] != ONE) revert Trident_TokenNotAllowed(_chosenToken);
         
-        GameInfos memory game = s_gamesInfo[_gameId];
         GameRelease memory gameNft = s_gamesCreated[_gameId];
 
-        if(block.timestamp < game.sellingDate) revert Trident_GameNotAvailableYet(block.timestamp, game.sellingDate);
+        if(block.timestamp < gameNft.sellingDate) revert Trident_GameNotAvailableYet(block.timestamp, gameNft.sellingDate);
 
-        if(_chosenToken.balanceOf(msg.sender) < game.price ) revert Trident_NotEnoughBalance(game.price);
+        if(_chosenToken.balanceOf(msg.sender) < gameNft.price ) revert Trident_NotEnoughBalance(gameNft.price);
 
         address buyer = msg.sender;
 
-        _handleExternalCall(_gameId, gameNft.keyAddress, block.timestamp, game.price, buyer, _gameReceiver, _chosenToken);
+        _handleExternalCall(_gameId, gameNft.keyAddress, block.timestamp, gameNft.price, buyer, _gameReceiver, _chosenToken);
     }
 
     //////////////
     ///INTERNAL///
     //////////////
+    /**
+     * @notice CCIP function to receive Cross-chain tokens and messages
+     * @param any2EvmMessage the CCIP messaging struct data
+     * @dev this function can only be called by allowed senders and chains.
+     */
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override onlyAllowlisted(any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address))){
 
-        s_ccipMessages[s_ccipCounter] = CCIPInfos({
-            lastReceivedMessageId: any2EvmMessage.messageId,
-            sourceChainSelector: any2EvmMessage.sourceChainSelector,
-            lastReceivedTokenAddress: any2EvmMessage.destTokenAmounts[0].token,
-            lastReceivedAmount: any2EvmMessage.destTokenAmounts[0].amount
-        });
+        if(any2EvmMessage.destTokenAmounts.length >= ONE){
 
-        s_ccipCounter = s_ccipCounter + 1;
+            s_ccipMessages[s_ccipCounter] = CCIPInfos({
+                lastReceivedMessageId: any2EvmMessage.messageId,
+                sourceChainSelector: any2EvmMessage.sourceChainSelector,
+                lastReceivedTokenAddress: any2EvmMessage.destTokenAmounts[0].token,
+                lastReceivedAmount: any2EvmMessage.destTokenAmounts[0].amount
+            });
 
-        if(any2EvmMessage.destTokenAmounts.length < ONE){
+        } else {
+
+            s_ccipMessages[s_ccipCounter] = CCIPInfos({
+                lastReceivedMessageId: any2EvmMessage.messageId,
+                sourceChainSelector: any2EvmMessage.sourceChainSelector,
+                lastReceivedTokenAddress: address(0),
+                lastReceivedAmount: 0
+            });
+
             (uint256 gameId, uint256 buyingTime, uint256 price, address gameReceiver) = abi.decode(any2EvmMessage.data, (uint256, uint256, uint256, address));
 
             GameRelease memory release = s_gamesCreated[gameId];
@@ -354,17 +363,29 @@ contract Trident is CCIPReceiver, Ownable{
             });
 
             s_clientRecords[gameReceiver].push(newGame);
-            ++s_gamesInfo[gameId].copiesSold;
+            ++s_gamesCreated[gameId].copiesSold;
 
             emit Trident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)));
 
             release.keyAddress.safeMint(gameReceiver);
         }
+
+        s_ccipCounter = s_ccipCounter + 1;
     }
 
     /////////////
     ///PRIVATE///
     /////////////
+    /**
+     * @notice function to deal with storage update and external call's
+     * @param _gameId the ID of the buyed game
+     * @param _keyAddress the game's contract address
+     * @param _buyingDate the date of buying
+     * @param _value the value to be paid
+     * @param _buyer the user that is buying
+     * @param _gameReceiver the address that will receive the game
+     * @param _chosenToken the token to pay.
+     */
     function _handleExternalCall(uint256 _gameId,
                                  TridentNFT _keyAddress,
                                  uint256 _buyingDate,
@@ -384,13 +405,13 @@ contract Trident is CCIPReceiver, Ownable{
         });
 
         s_clientRecords[_gameReceiver].push(newGame);
-        ++s_gamesInfo[_gameId].copiesSold;
+        ++s_gamesCreated[_gameId].copiesSold;
 
         emit Trident_NewGameSold(_gameId, gameNft.gameName, _buyer, _buyingDate, _gameReceiver);
 
         //INTERACTIONS
-        gameNft.keyAddress.safeMint(_gameReceiver);
         _chosenToken.safeTransferFrom(_buyer, address(this), _value);
+        gameNft.keyAddress.safeMint(_gameReceiver);
     }
 
     /**
@@ -431,28 +452,28 @@ contract Trident is CCIPReceiver, Ownable{
     /////////////////
     ///VIEW & PURE///
     /////////////////
+    /**
+     * @notice function to verify if an address is allowed in a specific chain
+     * @param _destinationChainId the blockchain Id
+     */
     function getAllowedCrossChainReceivers(uint64 _destinationChainId) external view returns(address){
         return s_crossChainReceivers[_destinationChainId];
     }
 
+    /**
+     * @notice function to get about game creation
+     * @param _gameId the game id
+     */
     function getGamesCreated(uint256 _gameId) external view returns(GameRelease memory){
         return s_gamesCreated[_gameId];
     }
 
-    function getGamesInfo(uint256 _gameId) external view returns(GameInfos memory){
-        return s_gamesInfo[_gameId];
-    }
-
+    /**
+     * @notice Function to get client infos
+     * @param _client the address of the client
+     */
     function getClientRecords(address _client) external view returns(ClientRecord[] memory){
         return s_clientRecords[_client];
-    }
-
-    function getAllowedTokens(ERC20 _tokenAddress) external view returns(uint256){
-        return s_tokenAllowed[_tokenAddress];
-    }
-
-    function getLastReceivedMessageDetails(uint256 _messageId) external view returns (CCIPInfos memory){
-        return s_ccipMessages[_messageId];
     }
 
     function getScoreChecker() external view returns(string[] memory){

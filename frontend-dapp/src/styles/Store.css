@@ -1,11 +1,121 @@
 .store {
-    padding        : 10px;
     background     : linear-gradient(0deg, #0a1124 0%, #10334e 100%);
     color          : whitesmoke;
     display        : flex;
     flex-direction : column;
     align-items    : center;
     justify-content: center;
+}
+
+.main-banner {
+    display        : flex;
+    align-items    : center;
+    justify-content: center;
+    flex-direction : column;
+    width          : 100%;
+    overflow       : hidden;
+}
+
+.main-game {
+    display            : flex;
+    align-items        : flex-end;
+    flex-direction     : column;
+    height             : 600px;
+    width              : 100%;
+    max-width          : 1200px;
+    background-image   : url('../assets/bellum-game.webp');
+    background-position: center;
+    background-size    : cover;
+    position           : relative;
+}
+
+.main-game .game-description {
+    margin: 0 .5em;
+}
+
+.main-banner .main-game .main-game-info {
+    display         : flex;
+    flex-direction  : column;
+    gap             : .1em;
+    margin          : 1em;
+    background-color: #18334ad5;
+    padding         : .4em;
+    position        : absolute;
+    bottom          : 0;
+    right           : 0;
+    border-radius   : 3px;
+    max-width       : 300px;
+}
+
+.main-banner .main-game h2 {
+    color : whitesmoke;
+    margin: 0 .2em;
+}
+
+.main-game-price-and-button {
+    display        : flex;
+    flex-direction : row;
+    align-items    : end;
+    justify-content: space-between;
+    margin         : 0 .4em .2em;
+    gap            : .2em;
+}
+
+.main-banner .main-game .game-price {
+    display         : flex;
+    align-items     : center;
+    font-weight     : bold;
+    font-size       : 28px;
+    width           : fit-content;
+    color           : yellowgreen;
+    background-color: #ffffff12;
+    padding         : .4em .4em .3em;
+    border-radius   : 3px;
+    border          : 1px solid #80808041;
+}
+
+.game-rating-wrap {
+    padding: 0;
+}
+
+.game-rating {
+    border          : 1px solid yellowgreen;
+    border-radius   : 5px;
+    background-color: #f0f8ff0c;
+    width           : fit-content;
+    display         : flex;
+    flex-direction  : column;
+    font-size       : 10px;
+    font-size       : 10px;
+    font-weight     : 600;
+    display         : flex;
+    flex-direction  : column;
+}
+
+.game-rating span {
+    font-size  : 18px;
+    font-weight: 600;
+}
+
+.main-banner .buy-main-game-button {
+    width           : fit-content;
+    height          : fit-content;
+    display         : flex;
+    flex-direction  : column;
+    align-items     : center;
+    justify-content : center;
+    font-size       : 24px;
+    font-weight     : 600;
+    background-color: yellowgreen;
+    color           : #303030;
+    padding         : .6em;
+    border-radius   : 3px;
+    border          : none;
+    cursor          : pointer;
+}
+
+.buy-main-game-button:hover {
+    background-color: #99cd32b0;
 }
 
 .banner-and-info {
@@ -33,9 +143,16 @@
 }
 
 .platform-info h2 {
-    font-size     : 2.5em;
-    text-transform: uppercase;
-    font-weight   : 700;
+    font-size  : 62px;
+    line-height: 60px;
+}
+
+.title-bar {
+    background-color: yellowgreen;
+    height          : 10px;
+    width           : 250px;
+    align-self      : flex-start;
+    clip-path       : polygon(5% 0%, 80% 0%, 75% 100%, 0% 100%);
 }
 
 .platform-info p {
@@ -43,11 +160,12 @@
 }
 
 .platform-info span {
-    background-color: #ffffff2b;
+    background-color: #ffffff11;
     padding         : .5em;
     font-weight     : bold;
     text-align      : center;
     width           : fit-content;
+    border-radius   : 4px;
 }
 
 .banner-content {
@@ -69,7 +187,8 @@
 
 .banner h2 {
     text-align: center;
-    margin    : .5em;
+    font-size : 32px;
+    margin    : .2em;
 }
 
 .featured-gallery {
@@ -84,7 +203,9 @@
 }
 
 .gallery h2 {
-    margin: 1em .4em;
+    font-size  : 32px;
+    line-height: 30px;
+    margin     : .2em .4em;
 }
 
 .games-gallery {
@@ -101,11 +222,54 @@
 }
 
 .middle {
-    height: 100vh;
+    display       : flex;
+    flex-direction: column;
+    align-items   : center;
+    min-height    : 100vh;
+}
+
+.middle div {
+    display        : flex;
+    flex-direction : column;
+    justify-content: center;
+    align-items    : center;
+    gap            : 1em;
+    margin-top     : 10%;
+    max-width      : 70%;
+    text-align     : center;
+}
+
+.middle div h2 {
+    font-size  : 62px;
+    line-height: 60px;
+}
+
+.middle div p {
+    font-size  : 18px;
+    line-height: 24px;
+}
+
+.middle .learn-more-button {
+    text-align    : center;
+    align-self    : center;
+    margin        : auto 0;
+    color         : yellowgreen;
+    cursor        : pointer;
+    text-transform: uppercase;
+}
+
+.middle .learn-more-button:hover {
+    text-decoration          : underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset    : 4px;
 }
 
 @media (max-width: 768px) {
+
     /* Versão para mobile */
+    .main-game {
+        height: 400px;
+    }
 
     .banner-and-info {
         flex-direction: column;
@@ -114,13 +278,21 @@
         margin-top    : 2em;
     }
 
+    .platform-info h2 {
+        font-size  : 32px;
+        line-height: 30px;
+    }
+
+    .title-bar {
+        width: 150px;
+    }
+
     .platform-info {
         margin-left: 0em;
         max-width  : 80%;
     }
 
     .banner-content button {
-        margin   : auto .2em;
         font-size: 2em;
     }
 
@@ -131,6 +303,20 @@
     .games-gallery>div {
         flex     : 1 0 45%;
         max-width: none;
+    }
+
+    .middle div h2 {
+        font-size  : 36px;
+        line-height: 34px;
+    }
+
+    .middle div p {
+        font-size  : 18px;
+        line-height: 18px;
+    }
+
+    .middle .learn-more-button {
+        font-size: 1em;
     }
 }
 
@@ -148,10 +334,18 @@
         margin-left: 2em;
     }
 
+    .platform-info h2 {
+        font-size  : 42px;
+        line-height: 40px;
+    }
+
     .games-gallery>div {
         flex     : 1 0 30%;
         max-width: 30%;
     }
 
-    .banner-content .slide-button {}
+    .middle div h2 {
+        font-size  : 46px;
+        line-height: 42px;
+    }
 }
