@@ -132,19 +132,6 @@
     },
     {
       "type": "function",
-      "name": "getAllowedTokens",
-      "inputs": [
-        {
-          "name": "_tokenAddress",
-          "type": "address",
-          "internalType": "contract ERC20"
-        }
-      ],
-      "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
-      "stateMutability": "view"
-    },
-    {
-      "type": "function",
       "name": "getClientRecords",
       "inputs": [
         { "name": "_client", "type": "address", "internalType": "address" }
@@ -198,24 +185,7 @@
               "name": "keyAddress",
               "type": "address",
               "internalType": "contract TridentNFT"
-            }
-          ]
-        }
-      ],
-      "stateMutability": "view"
-    },
-    {
-      "type": "function",
-      "name": "getGamesInfo",
-      "inputs": [
-        { "name": "_gameId", "type": "uint256", "internalType": "uint256" }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "tuple",
-          "internalType": "struct Trident.GameInfos",
-          "components": [
+            },
             {
               "name": "sellingDate",
               "type": "uint256",
@@ -224,43 +194,6 @@
             { "name": "price", "type": "uint256", "internalType": "uint256" },
             {
               "name": "copiesSold",
-              "type": "uint256",
-              "internalType": "uint256"
-            }
-          ]
-        }
-      ],
-      "stateMutability": "view"
-    },
-    {
-      "type": "function",
-      "name": "getLastReceivedMessageDetails",
-      "inputs": [
-        { "name": "_messageId", "type": "uint256", "internalType": "uint256" }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "tuple",
-          "internalType": "struct Trident.CCIPInfos",
-          "components": [
-            {
-              "name": "lastReceivedMessageId",
-              "type": "bytes32",
-              "internalType": "bytes32"
-            },
-            {
-              "name": "sourceChainSelector",
-              "type": "uint64",
-              "internalType": "uint64"
-            },
-            {
-              "name": "lastReceivedTokenAddress",
-              "type": "address",
-              "internalType": "address"
-            },
-            {
-              "name": "lastReceivedAmount",
               "type": "uint256",
               "internalType": "uint256"
             }
@@ -348,6 +281,21 @@
       "inputs": [
         { "name": "chainID", "type": "uint64", "internalType": "uint64" },
         { "name": "sender", "type": "address", "internalType": "address" }
+      ],
+      "outputs": [
+        { "name": "allowed", "type": "uint256", "internalType": "uint256" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "s_tokenAllowed",
+      "inputs": [
+        {
+          "name": "tokenAddress",
+          "type": "address",
+          "internalType": "contract ERC20"
+        }
       ],
       "outputs": [
         { "name": "allowed", "type": "uint256", "internalType": "uint256" }
@@ -474,25 +422,6 @@
         },
         {
           "name": "receiver",
-          "type": "address",
-          "indexed": false,
-          "internalType": "address"
-        }
-      ],
-      "anonymous": false
-    },
-    {
-      "type": "event",
-      "name": "Trident_FunctionsAddressUpdated",
-      "inputs": [
-        {
-          "name": "previousAddress",
-          "type": "address",
-          "indexed": false,
-          "internalType": "address"
-        },
-        {
-          "name": "functionsAddress",
           "type": "address",
           "indexed": false,
           "internalType": "address"
@@ -839,3 +768,4 @@
       ]
     }
   ]
+  
