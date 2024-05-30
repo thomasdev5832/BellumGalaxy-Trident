@@ -1,13 +1,19 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using tridentApi;
 using trident_interfaces;
 
 namespace tridentCore
 {
-    internal class TridentCore
+    public class TridentCore
     {
+        private string token;
+        private List<Games> games;
 
+        public TridentCore(string token)
+        {
+            this.token = token;
+            games = new List<Games>();
+        }
 
         private Process findProcess(string processName, Process[] processes)
         {
@@ -16,46 +22,53 @@ namespace tridentCore
         }
 
 
-        public string manipulateProcess(Process[] processes)
+        public async void manipulateProcess(Process[] processes)
         {
-            string retorno = "";
-            try
-            {
                 Console.WriteLine("inicio do processo");
-                ApiConnection apiConnection = new ApiConnection();
-                List<Games> listOfGamesForVerify = apiConnection.getGames();
-
-                foreach (Games game in listOfGamesForVerify)
-                {   
-                    Process process = findProcess(game.Name, processes);
-
-                    if (process != null)
+                ApiClient apiConnection = new ApiClient();
+                var orders = await apiConnection.GetUserOrdersAsync(this.token);
+            if (orders != null)
+            {
+                foreach (var order in orders)
+                {
+                    Games gameItem = new Games
                     {
-                        Console.WriteLine($"Nome: {process.ProcessName}, ID: {process.Id}");
-                        Console.WriteLine($"Processo encontrado para o jogo {game.Name}: {process.ProcessName}");
-                        bool isClose = game.Isbloked;
-                        if (isClose)
-                        {
-                        Console.WriteLine($"\nNome: {process.ProcessName}, Será encerrado");
-                        bool isClosed = process.CloseMainWindow();
-                        Console.WriteLine($"\nTempo do processo = {process.StartTime}");
-                        Console.WriteLine($"\nProcesso encerrado: {isClosed}");
-                        process.Kill();
-                        }
+                        GameId = order.gameId,
+                        Name = order.name,
+                        ProcessName = order.processName,
+                        DeveloperCompany = order.developerCompany,
+                        IsBlocked = order.isBlocked,
+                        GameImageUrl = order.gameImageUrl,
+                        GameAddress = order.gameAddress,
+                        Id = order.id,
+                        PreviousOwner = order.previousOwner,
+                        Receiver = order.receiver,
+                        NftId = order.nftId,
+                    };
 
-                    }
+                    games.Add(gameItem); // Adicione o jogo à lista
                 }
-                return $"Sucesso: {retorno}";
             }
-            catch (Exception ex) {
+                    foreach (Games game in games)
+                    {
+                        Process process = findProcess(game.Name, processes);
 
-                return $"deu erro: {ex}";
-            
-            }
+                        if (process != null)
+                        {
+                            Console.WriteLine($"Nome: {process.ProcessName}, ID: {process.Id}");
+                            Console.WriteLine($"Processo encontrado para o jogo {game.Name}: {process.ProcessName}");
+                            bool isClose = game.IsBlocked;
+                            if (isClose)
+                            {
+                                Console.WriteLine($"\nNome: {process.ProcessName}, Será encerrado");
+                                bool isClosed = process.CloseMainWindow();
+                                Console.WriteLine($"\nTempo do processo = {process.StartTime}");
+                                Console.WriteLine($"\nProcesso encerrado: {isClosed}");
+                                process.Kill();
+                            }
 
-
-          
-        }
-
+                        }
+                    }
+         }
     }
 }

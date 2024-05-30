@@ -1,31 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
+﻿
 using tridentCore;
 using System.Diagnostics;
 
-
 namespace trident_launcher_pooling
 {
-    internal class PoolingVerifyGames
+    public class PoolingVerifyGames(string token)
     {
-        
+        public string token = token;
 
         public void initPooling()
         {
             PoolingCallback();
         }
-
-        static void PoolingCallback()
+        public void PoolingCallback()
         {
             while (true)
             {
                 Process[] processes = Process.GetProcesses();
                 // Coloque aqui o código que deseja executar a cada intervalo de tempo
-                TridentCore tridentCore = new TridentCore();
+                TridentCore tridentCore = new TridentCore(token);
                 tridentCore.manipulateProcess(processes);
                 Console.WriteLine("Classe chamada! Tempo atual: " + DateTime.Now);
 
