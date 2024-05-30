@@ -155,3 +155,4 @@ Valor arrecadado por Desenvolvedoras
 | Raffa | Data Scientist & Blockchain Analyst | [Link](https://www.linkedin.com/in/raffaela-loffredo/) | [Link](https://twitter.com/loffredods) | [Link](https://github.com/raffaloffredo) |
 | Gabriel | Crawler, Python, Node.js, C# Developer | [Link](https://www.linkedin.com/in/gabriel-muniz-schneider/) | - | [Link](https://github.com/dejazz) |
 | Cayo | Frontend Developer | [Link](https://www.linkedin.com/in/cayo-morais-070b721b9/) | - | [Link](https://github.com/CayoTarcisio) |
+| Gabriel | Full Stack Developer & Software Engineer | [Link](https://www.linkedin.com/in/gabrieltome/) | [Link](https://x.com/GabrielThomeDev) | [Link](https://github.com/thomasdev5832) |
