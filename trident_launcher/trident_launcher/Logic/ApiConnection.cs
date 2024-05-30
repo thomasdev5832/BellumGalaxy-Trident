@@ -1,44 +1,61 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.Text;
+using System.Net.Http.Headers;
+using System.Text.Json;
 using trident_interfaces;
 namespace tridentApi
-{
-    internal class ApiConnection
+{   
+
+    public class ApiClient
     {
-        private readonly HttpClient _httpClient;
-        private string _apiKey;
+        private static readonly HttpClient client = new HttpClient();
+        public string token;
 
-        private List<Games> games;
-
-        public List<Games> getGames()
+        public async Task<string> LoginAsync(string email, string password)
         {
-            games = new List<Games> {
-            new Games { Name = "Roblox", Isbloked = true, durationGame = new DateTime(2024, 5, 2, 10, 0, 0)},
-            new Games { Name = "BlackDesert", Isbloked = false, durationGame = new DateTime(2024, 5, 2, 10, 0, 0)},
-        };
-            return games;
+            var loginUrl = "http://64.227.122.74:3000/auth/login";
+            var payload = new
+            {
+                email = email,
+                password = password
+            };
+
+            var jsonPayload = JsonSerializer.Serialize(payload);
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync(loginUrl, content);
+            if (response.IsSuccessStatusCode)
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseBody);
+                token = loginResponse.token;
+                return token;
+            }
+
+            return null;
         }
 
-        public string sendTimeLoggedInGame(string game)
+        public async Task<List<Order>> GetUserOrdersAsync(string token)
         {
-            return "";
+            var ordersUrl = $"http://64.227.122.74:3000/order/user/all";
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var response = await client.GetAsync(ordersUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var orders = JsonSerializer.Deserialize<List<Order>>(responseBody);
+                return orders;
+            }
+
+            return null;
         }
 
-        public void loginUser(string username, string password)
-        {
+        
 
-        }
-        public void verifyGameBlocked(string game)
-        {
-
-        }
-
+       
     }
+  
 }
 
 
