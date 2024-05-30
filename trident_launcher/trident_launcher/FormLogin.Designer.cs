@@ -53,7 +53,7 @@ namespace trident_launcher
             login.Text = "Logar";
             login.UseMnemonic = false;
             login.UseVisualStyleBackColor = false;
-            login.Click += login_Click;
+            login.Click += login_ClickAsync;
             // 
             // emailText
             // 
