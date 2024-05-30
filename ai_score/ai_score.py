@@ -13,6 +13,7 @@ class Score:
         self.social_searcher_url = SOCIAL_REACHER_BASE_URL
         self.api_reacher_key = f"{SOCIAL_REACHER}"
         self.openai_api_key = f"{OPENAI_KEY}"
+        self.limit_social_searcher =  f"{SOCIAL_REACHER_LIMIT}"
         self.search_query = ['dota2']
         self.posts_filtered = []
         self.current_date = datetime.now().strftime('%d-%m-%Y')
@@ -21,7 +22,7 @@ class Score:
 
     def get_social_searcher(self):
         for query in self.search_query:
-            api_url = f"{self.social_searcher_url}?q={query}&limit=5&key={self.api_reacher_key}"
+            api_url = f"{self.social_searcher_url}?q={query}&limit={self.limit_social_searcher}&key={self.api_reacher_key}"
             response = requests.get(api_url)
             if response.status_code == 200:
                 data = response.json()
