@@ -35,6 +35,9 @@ export class GameEntity {
     @Column({ type: 'varchar', length: 255, nullable: true })
     gameImageUrl: string;
 
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    gameAddress: string;
+    
     @OneToMany(() => OrderEntity, game => game.user)
     orders: GameEntity[];
 }
