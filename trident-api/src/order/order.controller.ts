@@ -26,25 +26,19 @@ export class OrderController {
     }
     return response
   }
- @Get('/user/:userId')
+
+ @Get('/user/all')
  @UseGuards(AuthGuard)
- findOrderByUserId(@Req() req,@Param('userId') userId: string){
+ findOrderByUserId(@Req() req){
   const {sub} = req.user
-  if(sub != userId){
+  console.log(sub)
+  if(!sub){
     throw new HttpException(`Not authorized`, HttpStatus.FORBIDDEN);
   }
-    return this.orderService.findOrderByUserId(userId)
+    return this.orderService.findOrderByUserId(String(sub))
  }
 
-  // @Post()
-  // createOrder(@Body() orderData: any) {
-  //   console.log('envio post',orderData)      
-  //   if(Object.entries(orderData).length  == 6){
-  //     return this.orderService.createOrder(orderData);
-  //   }
-  //   throw new HttpException(`invalid Payload`, HttpStatus.BAD_REQUEST);
 
-  // }
   @Post("gameAddress/:gameAddress/previousOwner/:previousOwner/receiver/:receiver/nftId/:nftId/gameName/:gameName/gameSymbol/:gameSymbol")
   createOrder(
   @Param('gameAddress') gameAddress: string, 
