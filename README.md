@@ -138,15 +138,30 @@ Valor arrecadado por Desenvolvedoras
 - Blockchain
   - Ethereum Sepolia
   - Optimism Sepolia
+- Blockchain Primitives
+  - NFT - ERC721
+  - Stablecoin - ERC20
 - Oráculos
   - Chainlink Functions
   - Chainlink CCIP
   - Chainlink Automation
+- Programming Languages
+  - Solidity
+  - Python
+  - Java Script
+  - TypeScript
+  - C#
 - Frontend
-  - Frameworks
-- Launcher
-  - DBs
-  - Ferramentas
+  - React
+  - Dynamic
+  - Ethers.js
+- Backend
+  - API
+  - Data Base
+- Infrastructure
+  - Launcher .exe
+- Tools
+  - Generative AI - OpenAI
 
 ## Meet the Team
 |Name   | Title | Linkedin | X/Twitter | GitHub |     
