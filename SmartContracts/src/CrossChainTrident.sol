@@ -257,7 +257,7 @@ contract CrossChainTrident is CCIPReceiver, Ownable{
                 data: _text,
                 tokenAmounts: new Client.EVMTokenAmount[](0),
                 extraArgs: Client._argsToBytes(
-                    Client.EVMExtraArgsV1({gasLimit: 500_000})
+                    Client.EVMExtraArgsV1({gasLimit: 750_000})
                 ),
                 feeToken: address(i_linkToken)
             });

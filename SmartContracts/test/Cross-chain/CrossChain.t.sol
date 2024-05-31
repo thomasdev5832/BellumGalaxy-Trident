@@ -182,7 +182,7 @@ contract CrossChain is Test {
         vm.stopPrank();
 
         assertEq(tokenOne.balanceOf(address(ccTrident)), 0);
-        assertEq(tokenOne.balanceOf(address(trident)), GAME_PRICE *10**18);
+        assertEq(tokenOne.balanceOf(address(trident)), GAME_PRICE *10**6);
     }
 
 }
