@@ -3,8 +3,9 @@ import Game from '../components/Game';
 import '../styles/Store.css';
 import { useReadContract } from 'wagmi';
 import tridentAbi from '../utils/Trident.json';
-import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { DynamicWidget, useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { ethers } from 'ethers';
+import { useUserWallets } from '@dynamic-labs/sdk-react-core'
 
 import gameImage1 from '../assets/game-images/game-01.jpg';
 import gameImage2 from '../assets/game-images/game-02.jpg';
@@ -22,29 +23,42 @@ import bellumGame from '../assets/bellum-game.webp';
 
 
 function Store() {
-
+  
   const infuraApiKey = process.env.REACT_APP_INFURA_API_KEY;
   const { primaryWallet } = useDynamicContext();
+
   const [gameName, setGameName] = useState('');
+  const [gameAddress, setGameAddress] = useState('');
+  const [gameId, setGameId] = useState('');
   const [gamePrice, setGamePrice] = useState('');
 
+  const [connected, setConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState("");
+
+  const { user } = useDynamicContext();
+
+  const userWallets = useUserWallets();
+
+  const primaryWalletAddress = primaryWallet?.address;
+  
   useEffect(() => {
     const fetchData = async () => {
       
-      const signer = await primaryWallet?.connector?.ethers?.getSigner();
-      
-      const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/efa7ec71610546999a311d56ece1e112`);
-
+      const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${infuraApiKey}`);
       const contractAddress = '0x873C0df305D75b078f002a81e2e8571021AC7e13';
-
       const contract = new ethers.Contract(contractAddress, tridentAbi, provider);
 
       try {
-        
         const result = await contract.getGamesCreated(1);
 
         setGameName(result[1]);
+        setGameAddress(result[2]);
+        setGameId(result[3]);
         setGamePrice(formatPrice(result[4]));
+
+        console.log('primaryWalletAddress: '+ primaryWalletAddress);
+        const signer = await primaryWallet.connector.ethers?.getSigner();
+        //console.log('signer: '+signer);
 
         console.log(result);
       } catch (error) {
@@ -54,6 +68,33 @@ function Store() {
 
     fetchData();
   }, []);
+
+  // BUY GAME
+  const buyGame = async () => {
+
+    if (!primaryWallet) {
+      console.error('No primary wallet connected');
+      return;
+    }
+    
+    const signer = await primaryWallet?.connector?.ethers?.getSigner();
+    const contractAddress = '0x873C0df305D75b078f002a81e2e8571021AC7e13';
+    const contract = new ethers.Contract(contractAddress, tridentAbi, signer);
+
+    console.log(signer);
+
+    const gameReceiver = await signer;
+    const usdcSepoliaAdrees = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
+    
+    try {
+      const tx = await contract.buyGame(gameId, usdcSepoliaAdrees, primaryWalletAddress);
+      console.log('Transação enviada:', tx);
+      await tx.wait();
+      console.log('Transação confirmada:', tx);
+    } catch (error) {
+      console.error('Erro ao comprar o jogo:', error);
+    }
+  };
 
   const featuredGames = [
     { 
@@ -204,6 +245,17 @@ function Store() {
     return price.toString().replace(/0+$/, '');
   };
 
+  function maskAddress(address) {
+    if (address.startsWith('0x') && address.length === 42) {
+      const firstPart = address.slice(0, 6); 
+      const lastPart = address.slice(-4);  
+      const maskedAddress = `${firstPart}...${lastPart}`;
+      return maskedAddress;
+    } else {
+      throw new Error('Endereço Ethereum inválido');
+    }
+  }
+
   return (
     <div className="store">
       <div className='main-banner'>
@@ -221,7 +273,7 @@ function Store() {
                   Rating
                 </p> 
               </div>
-              <button className='buy-main-game-button'>
+              <button className='buy-main-game-button' onClick={buyGame}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                   <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7h-1M8 7h-.688M13 5v4m-2-2h4"/>
                 </svg>
@@ -269,6 +321,16 @@ function Store() {
             </p>
             <a className='learn-more-button'>Learn More</a>
           </div>
+          <div className='wallets'>
+          <DynamicWidget />
+            <h1>Connected wallets</h1>
+            {userWallets.map((wallet) => (
+              <p key={wallet.id}>
+                {maskAddress(wallet.address)}: {wallet.connected ? 'Connected' : 'Not connected'}
+              </p>
+            ))}
+          </div>
+          
       </section>
     </div>
   );
