@@ -3,12 +3,8 @@ import Game from "../components/Game";
 import "../styles/Store.css";
 import tridentAbi from "../utils/Trident.json";
 import tridentFunctionsAbi from "../utils/TridentFunctions.json";
-import USDCSepolia from "../utils/USDCSepolia.json"
-import {
-  DynamicWidget,
-  useDynamicContext,
-  useUserWallets,
-} from "@dynamic-labs/sdk-react-core";
+import USDCSepolia from "../utils/USDCSepolia.json";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { ethers } from "ethers";
 
 import gameImage1 from "../assets/game-images/game-01.jpg";
@@ -24,7 +20,10 @@ import gameImage10 from "../assets/game-images/game-10.jpg";
 import gameImage11 from "../assets/game-images/game-11.jpg";
 import gameImage12 from "../assets/game-images/game-12.jpg";
 import bellumGame from "../assets/bellum-game.webp";
-import { isConstructorDeclaration } from "typescript";
+
+const contractAddress = "0x873C0df305D75b078f002a81e2e8571021AC7e13";
+const functionsAddress = "0x955386e624Ebc9439737Ec157df6A6ad5B16e892";
+const usdcSepoliaAdrees = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 
 function Store() {
   const [gameName, setGameName] = useState("");
@@ -32,10 +31,8 @@ function Store() {
   const [gameId, setGameId] = useState("");
   const [gamePrice, setGamePrice] = useState("");
   const [gameRating, setGameRating] = useState(null);
-  
-  const alchemyApiKey = process.env.REACT_APP_ALCHEMY_API_KEY;  
+  const alchemyApiKey = process.env.REACT_APP_ALCHEMY_API_KEY;
   const { primaryWallet } = useDynamicContext();
-  const userWallets = useUserWallets();
 
   useEffect(() => {
     fetchData();
@@ -46,19 +43,14 @@ function Store() {
     const provider = new ethers.providers.JsonRpcProvider(
       `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`
     );
-    const contractAddress = "0x873C0df305D75b078f002a81e2e8571021AC7e13";
-    const contract = new ethers.Contract(
-      contractAddress,
-      tridentAbi,
-      provider
-    );
+    const contract = new ethers.Contract(contractAddress, tridentAbi, provider);
 
     try {
       const result = await contract.getGamesCreated(1);
       setGameName(result[1]);
       setGameAddress(result[2]);
       setGameId(result[3]);
-      setGamePrice(formatPrice(result[4]));
+      setGamePrice(result[4]);
     } catch (error) {
       console.error("Erro ao ler dados do contrato:", error);
     }
@@ -68,25 +60,25 @@ function Store() {
     try {
       const provider = new ethers.providers.JsonRpcProvider(
         `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`
-      );
-      const contractAddress = "0x955386e624Ebc9439737Ec157df6A6ad5B16e892"; // Substitua pelo endereço correto do contrato TridentFunctions
+      ); // Substitua pelo endereço correto do contrato TridentFunctions
       const contract = new ethers.Contract(
-        contractAddress,
+        functionsAddress,
         tridentFunctionsAbi,
         provider
       );
-  
+
       const result = await contract.getScoreDailyHistory(gameName);
-      console.log(result);
-      
+
       if (result.length > 0) {
-        const total = result.reduce((acc, rating) => acc + rating.toNumber(), 0);
+        const total = result.reduce(
+          (acc, rating) => acc + rating.toNumber(),
+          0
+        );
         const averageRating = total / result.length;
         setGameRating(averageRating.toString());
       } else {
         setGameRating("N/A");
       }
-
     } catch (error) {
       console.error("Erro ao buscar o rating do jogo:", error);
     }
@@ -98,46 +90,39 @@ function Store() {
 
     if (!primaryWallet) {
       console.error("No primary wallet connected");
-      alert('Connect a wallet!');
+      alert("Connect a wallet!");
       return;
     }
 
     try {
       const walletClient = await primaryWallet.connector.getWalletClient();
 
-      if (!walletClient) {
-        console.error("Wallet client is not defined");
-        return;
-      }
-
-      // Obter o signer do walletClient
-      // Verificar se o walletClient é compatível com ethers
       const provider = new ethers.providers.Web3Provider(walletClient);
       const signer = provider.getSigner();
 
-      const contractAddress = "0x873C0df305D75b078f002a81e2e8571021AC7e13";
       const contract = new ethers.Contract(contractAddress, tridentAbi, signer);
+      const usdcContract = new ethers.Contract(
+        usdcSepoliaAdrees,
+        USDCSepolia,
+        signer
+      );
 
-      const usdcSepoliaAdrees = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
-      const usdcContract = new ethers.Contract(usdcSepoliaAdrees, USDCSepolia, signer);
-
-      const approval = await usdcContract.approve(contractAddress, (gamePrice *10**6));
-
+      const approval = await usdcContract.approve(contractAddress, gamePrice.toString());
+      console.log(signer.getAddress());
       const tx = await contract.buyGame(
-        gameId,
+        1,
         usdcSepoliaAdrees,
         signer.getAddress(),
         {
-          value: '1000000000000000000',
-          gasLimit: 100000000,
+          gasLimit: 5000000,
           nonce: undefined,
         }
       );
 
+      await approval.wait();
       console.log("Transação enviada:", tx);
       await tx.wait();
       console.log("Transação confirmada:", tx);
-      console.log(tx);
     } catch (error) {
       console.error("Erro ao comprar o jogo:", error);
     }
@@ -320,21 +305,18 @@ function Store() {
               strategic prowess meets boundless exploration.
             </p>
             <div className="main-game-price-and-button">
-              <p className="game-price">${gamePrice}</p>
+              <p className="game-price">${formatPrice(gamePrice)}</p>
               <div className="game-rating-wrap">
-              <p className="game-rating">
-                {typeof gameRating === 'object' ? (
-                  <span>N/A</span>
-                ) : (
-                  <span>{gameRating}/10</span>
-                )}
-                Rating
-              </p>
+                <p className="game-rating">
+                  {typeof gameRating === "object" ? (
+                    <span>N/A</span>
+                  ) : (
+                    <span>{gameRating}/5</span>
+                  )}
+                  Rating
+                </p>
               </div>
-              <button
-                className="buy-main-game-button"
-                onClick={buyGame}
-              >
+              <button className="buy-main-game-button" onClick={buyGame}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -406,16 +388,6 @@ function Store() {
           <a className="learn-more-button">Learn More</a>
         </div>
       </section>
-      <div className="wallets">
-          <DynamicWidget />
-          <h2>Connected wallets</h2>
-          {userWallets.map((wallet) => (
-            <p key={wallet.id}>
-              {maskAddress(wallet.address)}:{" "}
-              {wallet.connected ? "Connected" : "Not connected"}
-            </p>
-          ))}
-        </div>
     </div>
   );
 }
