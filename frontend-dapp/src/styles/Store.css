@@ -235,7 +235,7 @@
     align-items    : center;
     gap            : 1em;
     margin-top     : 10%;
-    max-width      : 70%;
+    max-width      : 80%;
     text-align     : center;
 }
 
@@ -264,7 +264,18 @@
     text-underline-offset    : 4px;
 }
 
-.wallets p {}
+.wallets {
+    display        : flex;
+    flex-direction : column;
+    justify-content: center;
+    align-items    : center;
+    gap            : 1em;
+}
+
+.wallets p {
+    font-weight: bold;
+    color      : yellowgreen;
+}
 
 @media (max-width: 768px) {
 
@@ -314,7 +325,7 @@
 
     .middle div p {
         font-size  : 18px;
-        line-height: 18px;
+        line-height: 22px;
     }
 
     .middle .learn-more-button {
