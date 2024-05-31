@@ -78,9 +78,15 @@ function Store() {
   
       const result = await contract.getScoreDailyHistory(gameName);
       console.log(result);
-      const latestRating = result[result.length - 1]; 
-  
-      setGameRating(latestRating.toString());
+      
+      if (result.length > 0) {
+        const total = result.reduce((acc, rating) => acc + rating.toNumber(), 0);
+        const averageRating = total / result.length;
+        setGameRating(averageRating.toString());
+      } else {
+        setGameRating("N/A");
+      }
+
     } catch (error) {
       console.error("Erro ao buscar o rating do jogo:", error);
     }
@@ -122,6 +128,7 @@ function Store() {
         usdcSepoliaAdrees,
         signer.getAddress(),
         {
+          value: '1000000000000000000',
           gasLimit: 100000000,
           nonce: undefined,
         }
