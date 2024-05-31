@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Game from "../components/Game";
 import "../styles/Store.css";
 import tridentAbi from "../utils/Trident.json";
+import tridentFunctionsAbi from "../utils/TridentFunctions.json";
 import USDCSepolia from "../utils/USDCSepolia.json"
 import {
   DynamicWidget,
@@ -30,37 +31,60 @@ function Store() {
   const [gameAddress, setGameAddress] = useState("");
   const [gameId, setGameId] = useState("");
   const [gamePrice, setGamePrice] = useState("");
+  const [gameRating, setGameRating] = useState(null);
   
   const alchemyApiKey = process.env.REACT_APP_ALCHEMY_API_KEY;  
   const { primaryWallet } = useDynamicContext();
   const userWallets = useUserWallets();
 
   useEffect(() => {
-    const fetchData = async () => {
+    fetchData();
+    fetchRating();
+  }, [alchemyApiKey]);
+
+  const fetchData = async () => {
+    const provider = new ethers.providers.JsonRpcProvider(
+      `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`
+    );
+    const contractAddress = "0x873C0df305D75b078f002a81e2e8571021AC7e13";
+    const contract = new ethers.Contract(
+      contractAddress,
+      tridentAbi,
+      provider
+    );
+
+    try {
+      const result = await contract.getGamesCreated(1);
+      setGameName(result[1]);
+      setGameAddress(result[2]);
+      setGameId(result[3]);
+      setGamePrice(formatPrice(result[4]));
+    } catch (error) {
+      console.error("Erro ao ler dados do contrato:", error);
+    }
+  };
+
+  const fetchRating = async () => {
+    try {
       const provider = new ethers.providers.JsonRpcProvider(
         `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`
       );
-      const contractAddress = "0x873C0df305D75b078f002a81e2e8571021AC7e13";
+      const contractAddress = "0x955386e624Ebc9439737Ec157df6A6ad5B16e892"; // Substitua pelo endereço correto do contrato TridentFunctions
       const contract = new ethers.Contract(
         contractAddress,
-        tridentAbi,
+        tridentFunctionsAbi,
         provider
       );
-
-      try {
-        const result = await contract.getGamesCreated(1);
-
-        setGameName(result[1]);
-        setGameAddress(result[2]);
-        setGameId(result[3]);
-        setGamePrice(formatPrice(result[4]));
-      } catch (error) {
-        console.error("Erro ao ler dados do contrato:", error);
-      }
-    };
-
-    fetchData();
-  }, [alchemyApiKey]);
+  
+      const result = await contract.getScoreDailyHistory(gameName);
+      console.log(result);
+      const latestRating = result[result.length - 1]; 
+  
+      setGameRating(latestRating.toString());
+    } catch (error) {
+      console.error("Erro ao buscar o rating do jogo:", error);
+    }
+  };
 
   // BUY GAME
   const buyGame = async () => {
@@ -68,6 +92,7 @@ function Store() {
 
     if (!primaryWallet) {
       console.error("No primary wallet connected");
+      alert('Connect a wallet!');
       return;
     }
 
@@ -92,7 +117,6 @@ function Store() {
 
       const approval = await usdcContract.approve(contractAddress, (gamePrice *10**6));
 
-      
       const tx = await contract.buyGame(
         gameId,
         usdcSepoliaAdrees,
@@ -291,10 +315,14 @@ function Store() {
             <div className="main-game-price-and-button">
               <p className="game-price">${gamePrice}</p>
               <div className="game-rating-wrap">
-                <p className="game-rating">
-                  <span>9/10</span>
-                  Rating
-                </p>
+              <p className="game-rating">
+                {typeof gameRating === 'object' ? (
+                  <span>N/A</span>
+                ) : (
+                  <span>{gameRating}/10</span>
+                )}
+                Rating
+              </p>
               </div>
               <button
                 className="buy-main-game-button"
@@ -370,9 +398,10 @@ function Store() {
           </p>
           <a className="learn-more-button">Learn More</a>
         </div>
-        <div className="wallets">
+      </section>
+      <div className="wallets">
           <DynamicWidget />
-          <h1>Connected wallets</h1>
+          <h2>Connected wallets</h2>
           {userWallets.map((wallet) => (
             <p key={wallet.id}>
               {maskAddress(wallet.address)}:{" "}
@@ -380,7 +409,6 @@ function Store() {
             </p>
           ))}
         </div>
-      </section>
     </div>
   );
 }
