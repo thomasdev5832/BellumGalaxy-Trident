@@ -25,6 +25,21 @@ const evmNetworks = [
     rpcUrls: ["https://eth-sepolia.public.blastapi.io"],
     vanityName: "Sepolia",
   },
+  {
+    blockExplorerUrls: ["https://sepolia-optimism.etherscan.io/"],
+    chainId: 11155420,
+    chainName: "OP Sepolia",
+    iconUrls: ["https://app.dynamic.xyz/assets/networks/eth.svg"],
+    name: "OP Sepolia",
+    nativeCurrency: {
+      decimals: 18,
+      name: "Ether",
+      symbol: "ETH",
+    },
+    networkId: 11155420,
+    rpcUrls: ["https://opt-sepolia.g.alchemy.com/v2/NAJutcGPzT9SZcptHOOwt9oFQ85jSHc8"],
+    vanityName: "OP Sepolia",
+  },
 ];
 
 function App() {
