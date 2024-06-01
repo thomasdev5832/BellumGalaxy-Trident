@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@dynamic-labs/ethers-v5": "^2.0.8",
+    "@babel/plugin-transform-react-jsx@^7.14.9",
     "@dynamic-labs/ethereum": "^2.0.8",
     "@dynamic-labs/sdk-react-core": "^2.0.8",
     "@react-native-async-storage/async-storage": "^1.23.1",
