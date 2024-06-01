@@ -28,8 +28,9 @@ const usdcSepoliaAdrees = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 function Store() {
   const [gameName, setGameName] = useState("");
   const [gameAddress, setGameAddress] = useState("");
-  const [gameId, setGameId] = useState("");
+  const [buyingTime, setBuyingTime] = useState("");
   const [gamePrice, setGamePrice] = useState("");
+  const [gameId, setGameId] = useState("");
   const [gameRating, setGameRating] = useState(null);
   const alchemyApiKey = process.env.REACT_APP_ALCHEMY_API_KEY;
   const { primaryWallet } = useDynamicContext();
@@ -46,14 +47,15 @@ function Store() {
     const contract = new ethers.Contract(contractAddress, tridentAbi, provider);
 
     try {
-      const result = await contract.getGamesCreated(1);
+      const result = await contract.getGamesCreated(1); //Hardcode temporary
       setGameName(result[1]);
       setGameAddress(result[2]);
-      setGameId(result[3]);
+      setBuyingTime(result[3]);
       setGamePrice(result[4]);
     } catch (error) {
       console.error("Erro ao ler dados do contrato:", error);
     }
+    console.log(gameId);
   };
 
   const fetchRating = async () => {
@@ -110,7 +112,7 @@ function Store() {
       const approval = await usdcContract.approve(contractAddress, gamePrice.toString());
       console.log(signer.getAddress());
       const tx = await contract.buyGame(
-        1,
+        1, //Hardcode temporary
         usdcSepoliaAdrees,
         signer.getAddress(),
         {
