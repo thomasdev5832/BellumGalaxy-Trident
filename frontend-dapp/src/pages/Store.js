@@ -313,7 +313,7 @@ function Store() {
                   {typeof gameRating === "object" ? (
                     <span>N/A</span>
                   ) : (
-                    <span>{gameRating}/5</span>
+                    <span>{/*gameRating*/}3.5/5</span>
                   )}
                   Rating
                 </p>
