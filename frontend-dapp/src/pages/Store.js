@@ -116,7 +116,7 @@ function Store() {
         usdcSepoliaAdrees,
         signer.getAddress(),
         {
-          gasLimit: 5000000,
+          gasLimit: 8000000,
           nonce: undefined,
         }
       );
