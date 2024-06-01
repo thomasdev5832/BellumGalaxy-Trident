@@ -2,7 +2,8 @@ import { IsNumber, IsEmail, IsOptional, IsString, MaxLength, MinLength } from "c
 
 export class UserDto {
     @IsString()
-    userId: string;
+    @IsOptional()
+    userId?: string;
 
     @IsString()
     @MinLength(1)
@@ -19,7 +20,6 @@ export class UserDto {
     email: string;
 
     @IsString()
-    @IsOptional()
     @MaxLength(255)
     walletId?: string;
 
