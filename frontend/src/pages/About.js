@@ -12,7 +12,7 @@ function About() {
         </div>
         <section className="content">
           <div className="subContent">
-            <h1>Go to marked fast, scale even faster</h1>
+            <h1>Go to market fast, scale even faster</h1>
 
             <p>
               When launching a product, time is of the essence. Save time,
