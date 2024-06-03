@@ -43,7 +43,7 @@ function NavBar() {
         </li>
         <li onClick={removeActive}>
           <a
-            href="https://www.bellumgalaxy-trident.netlify.app"
+            href="https://www.bellumgalaxy-tridentapp.vercel.app"
             className="navLink"
           >
             <button className="btn-launch">Launch App</button>
