@@ -35,11 +35,6 @@ function Store() {
   const alchemyApiKey = process.env.REACT_APP_ALCHEMY_API_KEY;
   const { primaryWallet } = useDynamicContext();
 
-  useEffect(() => {
-    fetchData();
-    fetchRating();
-  }, [alchemyApiKey]);
-
   const fetchData = async () => {
     const provider = new ethers.providers.JsonRpcProvider(
       `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`
@@ -47,11 +42,11 @@ function Store() {
     const contract = new ethers.Contract(contractAddress, tridentAbi, provider);
 
     try {
-      const result = await contract.getGamesCreated(1); //Hardcode temporary
-      setGameName(result[1]);
-      setGameAddress(result[2]);
-      setBuyingTime(result[3]);
-      setGamePrice(result[4]);
+      const result = await contract.getGamesCreated(1);
+      setGameName(result[1].toString());
+      setGameAddress(result[2].toString());
+      setBuyingTime(result[3].toNumber());
+      setGamePrice(result[4].toNumber());
     } catch (error) {
       console.error("Erro ao ler dados do contrato:", error);
     }
@@ -62,7 +57,7 @@ function Store() {
     try {
       const provider = new ethers.providers.JsonRpcProvider(
         `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`
-      ); // Substitua pelo endereço correto do contrato TridentFunctions
+      );
       const contract = new ethers.Contract(
         functionsAddress,
         tridentFunctionsAbi,
@@ -85,6 +80,11 @@ function Store() {
       console.error("Erro ao buscar o rating do jogo:", error);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+    fetchRating();
+  }, [alchemyApiKey]);
 
   // BUY GAME
   const buyGame = async () => {
@@ -137,7 +137,7 @@ function Store() {
       image: gameImage1,
       category: "Action",
       subcategory: "Adventure",
-      rating: 8.5,
+      rating: 4.2,
       description:
         "Experience the epic journey of a Jedi in this action-packed adventure.",
       downloads: 1500000,
@@ -148,7 +148,7 @@ function Store() {
       image: gameImage2,
       category: "Strategy",
       subcategory: "War",
-      rating: 7.2,
+      rating: 3.8,
       description: "Plan and execute intricate warfare strategies.",
       downloads: 800000,
     },
@@ -158,7 +158,7 @@ function Store() {
       image: gameImage3,
       category: "FPS",
       subcategory: "Shooter",
-      rating: 7.8,
+      rating: 4.8,
       description: "Experience the chaos of large-scale multiplayer battles.",
       downloads: 3000000,
     },
@@ -168,7 +168,7 @@ function Store() {
       image: gameImage4,
       category: "FPS",
       subcategory: "Shooter",
-      rating: 9.1,
+      rating: 4.1,
       description:
         "Classic multiplayer shooter with new and improved mechanics.",
       downloads: 4000000,
@@ -182,7 +182,7 @@ function Store() {
       image: gameImage5,
       category: "Sports",
       subcategory: "Soccer",
-      rating: 8.0,
+      rating: 5.0,
       description: "Experience the most realistic soccer simulation.",
       downloads: 2500000,
     },
@@ -192,7 +192,7 @@ function Store() {
       image: gameImage6,
       category: "Sports",
       subcategory: "Football",
-      rating: 7.5,
+      rating: 4.5,
       description: "Enjoy the latest in American football simulation.",
       downloads: 1800000,
     },
@@ -202,7 +202,7 @@ function Store() {
       image: gameImage7,
       category: "Racing",
       subcategory: "Simulation",
-      rating: 9.2,
+      rating: 4.2,
       description: "Experience the open-world racing adventure.",
       downloads: 3200000,
     },
@@ -212,7 +212,7 @@ function Store() {
       image: gameImage8,
       category: "Adventure",
       subcategory: "Pirates",
-      rating: 8.3,
+      rating: 4.3,
       description:
         "Live the life of a pirate in this open-world multiplayer game.",
       downloads: 2800000,
@@ -223,7 +223,7 @@ function Store() {
       image: gameImage9,
       category: "Survival",
       subcategory: "Open World",
-      rating: 7.8,
+      rating: 3.8,
       description: "Survive and thrive in a harsh environment.",
       downloads: 1400000,
     },
@@ -233,7 +233,7 @@ function Store() {
       image: gameImage10,
       category: "Survival",
       subcategory: "Vikings",
-      rating: 8.7,
+      rating: 4.7,
       description:
         "Explore the mystical Viking world in this open-world survival game.",
       downloads: 1200000,
@@ -244,7 +244,7 @@ function Store() {
       image: gameImage11,
       category: "Action",
       subcategory: "Shooter",
-      rating: 7.5,
+      rating: 4.5,
       description: "Fight against aliens in this cooperative action shooter.",
       downloads: 900000,
     },
@@ -254,7 +254,7 @@ function Store() {
       image: gameImage12,
       category: "Action",
       subcategory: "MMO",
-      rating: 9.0,
+      rating: 4.0,
       description: "Experience the fast-paced action in this multiplayer MMO.",
       downloads: 3500000,
     },
@@ -313,7 +313,7 @@ function Store() {
                   {typeof gameRating === "object" ? (
                     <span>N/A</span>
                   ) : (
-                    <span>{/*gameRating*/}3.5/5</span>
+                    <span>{gameRating}/5</span>
                   )}
                   Rating
                 </p>

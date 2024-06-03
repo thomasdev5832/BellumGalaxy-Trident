@@ -11,6 +11,7 @@
 .dashboard h2 {
     text-align: center;
     color     : whitesmoke;
+    margin-bottom : 1em;
 }
 
 .game-list {
@@ -18,6 +19,8 @@
     flex-wrap      : wrap;
     justify-content: center;
     gap            : 20px;
+    width          : 100%;
+    padding        : 0 2em;
 }
 
 .transaction-list {

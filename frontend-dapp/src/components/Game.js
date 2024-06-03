@@ -21,7 +21,7 @@ function Game({ title, price, image, category, subcategory, rating, description,
         <div className='game-rating-wrap'>
           <p className="game-rating">
             <span>
-            {rating}/10
+            {rating}/5
             </span>
             Rating
           </p> 
@@ -37,9 +37,7 @@ function Game({ title, price, image, category, subcategory, rating, description,
         </svg>
 
         </button>
-       </div>
-      
-      
+       </div>      
     </div>
   );
 }

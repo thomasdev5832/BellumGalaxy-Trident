@@ -1,34 +1,23 @@
 import React from 'react';
-import '../styles/Game.css';
+import '../styles/MyGames.css';
 
-function MyGames({
-  title,
-  image,
-  category,
-  subcategory,
-  rating,
-  description,
-  downloads,
-}) {
+function MyGames({ title, value, image, category, rating }) {
   return (
     <div className="game">
-      <img src={image} alt={title} className="game-image" />
-      <h3 className="game-title">{title}</h3>
-      <p className="game-category">
-        {category} &gt; {subcategory}
-      </p>
-
-      <p className="game-description">{description}</p>
-      <div className="rating-and-downloads-wrap">
+      <img src={image} alt={`${title} cover`} className="game-image" />
+      <div className="game-info">
+        <h2 className="game-title">{title}</h2>
         <div className="game-rating-wrap">
           <p className="game-rating">
-            <span>{rating}/10</span>
+            <span>{rating}/5</span>
             Rating
           </p>
         </div>
       </div>
-
+      <div className="game-category">{category}</div>
       <div className="game-price-and-buy-button-wrap">
+        <div className="game-price">{value}</div>
+        <button className="buy-button">Market soon</button>
       </div>
     </div>
   );
