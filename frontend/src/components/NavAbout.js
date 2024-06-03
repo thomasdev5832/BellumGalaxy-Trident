@@ -6,17 +6,21 @@ function NavAbout() {
     <>
       <div className="navAbout">
         <ul className="menuAbout">
-          <li className="pro">
-            <a>Protocols and Standards</a>
+          <li>
+            <i class="fa-solid fa-dice-d6"></i>
+            <a>Blockchain Security</a>
           </li>
-          <li className="tri">
-            <a>Trinsic Infrastrucutre</a>
+          <li>
+            <i class="fa-solid fa-skull-crossbones"></i>
+            <a>Anti-Piracy Infrastructure</a>
           </li>
-          <li className="app">
-            <a>Application Layer</a>
+          <li>
+            <i class="fa-solid fa-scroll"></i>
+            <a>Secure Application Layer</a>
           </li>
-          <li className="id">
-            <a>ID-tech Products</a>
+          <li>
+            <i class="fa-solid fa-shield-halved"></i>
+            <a>Digital Asset Protection</a>
           </li>
         </ul>
       </div>
