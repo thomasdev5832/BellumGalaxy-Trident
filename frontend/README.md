@@ -1,22 +1,19 @@
 <div style="text-align: center;">
-  <img src="/frontend-dapp/src/assets/trident.png" alt="Project Logo" width="100"/>
+  <img src="./src/assets/trident.png" alt="Project Logo" width="100"/>
 </div>
 
 # Trident Webpage
 
---- 
-
 
 Trident Webpage is a React frontend project showcasing the core functionalities of the Trident DApp. Explore the innovative features that empower users with secure and decentralized applications built on blockchain technology. Meet the talented team behind this hackathon project and discover their vision for the future of digital innovation.
 
---- 
 
 ## Setup
 
 ### 1. **Clone the repository:**
 
 ```sh
-git clone https://github.com/BellumGalaxy/BlockMagic-Trident/tree/main/frontend
+git clone https://github.com/BellumGalaxy/BlockMagic-Trident/frontend
 cd frontend
 ```
 

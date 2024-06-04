@@ -12,9 +12,9 @@
 </br>
 
 ### Links
-- Pitch deck video presentation is available on [YouTube]()
-- Live demo [website]()
-- [Slide]() presentation
+- Pitch deck video presentation is available on [YouTube](https://youtu.be/R5Az6V7_Q3c?si=U9Ybr6Tm4b0D6nBK)
+- Live demo [website](https://bellumgalaxy-trident.vercel.app)
+- [Slide](https://drive.google.com/file/d/1Us1ozLipa9OUPIwzb2qXpAkCL4ToqYBS/view?usp=sharing) presentation
 
 </br>
 
