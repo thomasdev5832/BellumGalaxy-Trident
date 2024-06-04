@@ -43,7 +43,7 @@ function NavBar() {
         </li>
         <li onClick={removeActive}>
           <a
-            href="https://www.bellumgalaxy-tridentapp.vercel.app"
+            href="https://bellumgalaxy-trident.vercel.app"
             className="navLink"
           >
             <button className="btn-launch">Launch App</button>
