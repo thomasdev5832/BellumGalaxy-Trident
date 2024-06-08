@@ -22,9 +22,9 @@
     color      : #cacad6;
 }
 
-.main-moreinfo i {
-    font-size : 4em;
-    margin-top: .4em;
+.main-moreinfo img {
+    width     : 4em;
+    margin-top: 4em;
 }
 
 .main-moreinfo .learn {
