@@ -367,7 +367,7 @@ contract Trident is CCIPReceiver, Ownable{
 
             emit Trident_MessageReceived(any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, abi.decode(any2EvmMessage.sender, (address)));
 
-            // release.keyAddress.safeMint(gameReceiver);
+            release.keyAddress.safeMint(gameReceiver);
         }
 
         s_ccipCounter = s_ccipCounter + 1;
